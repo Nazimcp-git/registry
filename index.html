@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alumni Student Register</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Firebase SDK (v8.10.0) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Custom Styles for iOS look and feel -->
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #f8f8fa; /* A slightly off-white, iOS-like background */
+        }
+
+        /* Custom iOS-style toggle switch */
+        .toggle-checkbox:checked {
+            right: 0;
+            border-color: #34C759;
+        }
+        .toggle-checkbox:checked + .toggle-label {
+            background-color: #34C759;
+        }
+        
+        /* Animation for modal and notifications */
+        .fade-in { animation: fadeIn 0.3s ease-out forwards; }
+        .fade-out { animation: fadeOut 0.3s ease-in forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.95) translateY(-10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+        @keyframes fadeOut { from { opacity: 1; transform: scale(1) translateY(0); } to { opacity: 0; transform: scale(0.95) translateY(-10px); } }
+
+        /* Custom scrollbar for a cleaner look */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
+        
+        /* Admin-only controls are hidden by default */
+        .admin-only {
+            display: none;
+        }
+        
+        /* When admin is logged in, show the controls */
+        body.admin-logged-in .admin-only {
+            display: inline-flex; /* Use flex for buttons */
+        }
+        
+        body.admin-logged-in .admin-only-block {
+             display: block; /* Use block for other elements if needed */
+        }
+
+        /* All page views are hidden by default */
+        .page-view {
+            display: none;
+        }
+        
+        /* Logic to show the correct view based on body class */
+        body.show-login #admin-login-view {
+            display: flex;
+        }
+
+        body.show-list #list-view,
+        body.show-form #form-view,
+        body.show-profile #profile-view {
+            display: block;
+        }
+
+    </style>
+</head>
+<body class="antialiased text-gray-800">
+
+    <!-- Admin Login View -->
+    <div id="admin-login-view" class="page-view min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
+        <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-sm text-center">
+            <h2 class="text-2xl font-bold mb-2">Admin Access</h2>
+            <p class="text-gray-500 mb-6">Please enter the login code to continue.</p>
+            <form id="login-form">
+                <input type="password" id="login-code" placeholder="Enter code" class="w-full text-center text-lg border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                <p id="login-error" class="text-red-500 text-sm mt-2 h-4"></p>
+                <button type="submit" class="w-full mt-4 bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg shadow-sm transition">
+                    Login
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main App Container / Student List View -->
+    <div id="list-view" class="page-view max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        <!-- Header -->
+        <header class="flex items-center justify-between mb-6">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900">Alumni Register</h1>
+                <p class="text-gray-500 mt-1">Manage and search for student records.</p>
+            </div>
+            <div class="flex items-center space-x-4">
+                <button id="add-student-btn" class="admin-only bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-5 rounded-lg shadow-sm transition-transform transform hover:scale-105">
+                    Add Student
+                </button>
+                <button id="logout-btn" class="admin-only bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 px-5 rounded-lg shadow-sm">
+                    Logout
+                </button>
+            </div>
+        </header>
+
+        <!-- Search and Filter Bar -->
+        <div class="flex flex-col md:flex-row items-center gap-4 mb-6">
+            <!-- Search Bar -->
+            <div class="relative w-full flex-grow">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+                    </svg>
+                </div>
+                <input type="text" id="search-bar" placeholder="Search by Name, Place, District, Degree, PG Dept, or Mahallu..." class="block w-full bg-white border border-gray-200 rounded-xl py-3 pl-10 pr-3 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+            </div>
+            <!-- Batch Filter -->
+            <div class="w-full md:w-auto">
+                <select id="batch-filter" class="block w-full md:w-48 bg-white border border-gray-200 rounded-xl py-3 px-4 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+                    <option value="">Filter by Batch</option>
+                    <!-- Batch options will be dynamically populated -->
+                </select>
+            </div>
+        </div>
+
+
+        <!-- Student List Container -->
+        <main id="student-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Student cards will be dynamically inserted here -->
+        </main>
+        <div id="no-results" class="hidden text-center py-16">
+            <h3 class="text-xl font-semibold text-gray-500">No students found.</h3>
+            <p class="text-gray-400">Try adjusting your search or add a new student.</p>
+        </div>
+    </div>
+
+    <!-- Add/Edit Student Form View -->
+    <div id="form-view" class="page-view max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="bg-white rounded-2xl shadow-2xl overflow-hidden">
+            <div class="flex items-center justify-between p-5 border-b border-gray-200">
+                <h2 id="modal-title" class="text-xl font-bold">Add New Student</h2>
+                <button id="cancel-form-btn" class="text-gray-500 hover:text-gray-700 font-semibold text-sm">
+                    CANCEL
+                </button>
+            </div>
+            <form id="student-form" class="p-6 space-y-8 overflow-y-auto" style="max-height: 80vh;">
+                <input type="hidden" id="student-id">
+                
+                <!-- Personal Information -->
+                <fieldset class="space-y-4">
+                    <legend class="text-lg font-semibold text-gray-700 border-b pb-2 mb-4">Personal Information</legend>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="md:col-span-2">
+                            <label for="fullName" class="block text-sm font-medium text-gray-600">Full Name *</label>
+                            <input type="text" id="fullName" class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500" required>
+                        </div>
+                        <div>
+                            <label for="dob" class="block text-sm font-medium text-gray-600">Date of Birth *</label>
+                            <input type="date" id="dob" class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500" required>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="birthPlace" class="block text-sm font-medium text-gray-600">Birth Place</label>
+                            <input type="text" id="birthPlace" class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                         <div>
+                            <label for="address" class="block text-sm font-medium text-gray-600">Address</label>
+                            <textarea id="address" rows="1" class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"></textarea>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="phone" class="block text-sm font-medium text-gray-600">Phone Number *</label>
+                            <input type="tel" id="phone" class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500" required>
+                        </div>
+                        <div>
+                            <label for="whatsapp" class="block text-sm font-medium text-gray-600">WhatsApp Number</label>
+                            <input type="tel" id="whatsapp" class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                    </div>
+                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label for="location" class="block text-sm font-medium text-gray-600">Location</label>
+                            <input type="text" id="location" class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                        <div>
+                            <label for="district" class="block text-sm font-medium text-gray-600">District</label>
+                            <input type="text" id="district" class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                         <div>
+                            <label for="mahallu" class="block text-sm font-medium text-gray-600">Mahallu Masjid</label>
+                            <input type="text" id="mahallu" class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                    </div>
+                    <div>
+                         <label class="block text-sm font-medium text-gray-600">At Own Home?</label>
+                         <div class="mt-2 flex items-center">
+                            <span class="text-sm mr-3">No</span>
+                            <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+                                <input type="checkbox" id="atOwnHome" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-2 appearance-none cursor-pointer"/>
+                                <label for="atOwnHome" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+                            </div>
+                            <span class="text-sm text-gray-600">Yes</span>
+                        </div>
+                    </div>
+                </fieldset>
+
+                <!-- Educational Information -->
+                <fieldset class="space-y-4">
+                    <legend class="text-lg font-semibold text-gray-700 border-b pb-2 mb-4">Educational Information</legend>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-center">
+                        <div class="flex items-center space-x-4">
+                             <label class="block text-sm font-medium text-gray-600">SSLC Holder?</label>
+                             <div class="flex items-center">
+                                <span class="text-sm mr-3">No</span>
+                                <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+                                    <input type="checkbox" id="sslc" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-2 appearance-none cursor-pointer"/>
+                                    <label for="sslc" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+                                </div>
+                                <span class="text-sm text-gray-600">Yes</span>
+                            </div>
+                        </div>
+                         <div class="flex items-center space-x-4">
+                             <label class="block text-sm font-medium text-gray-600">Is Hudawi?</label>
+                             <div class="flex items-center">
+                                <span class="text-sm mr-3">No</span>
+                                <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+                                    <input type="checkbox" id="isHudawi" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-2 appearance-none cursor-pointer"/>
+                                    <label for="isHudawi" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+                                </div>
+                                <span class="text-sm text-gray-600">Yes</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                           <label for="batchNo" class="block text-sm font-medium text-gray-600">Batch No.</label>
+                           <input type="text" id="batchNo" class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                        <div>
+                            <label for="admissionNo" class="block text-sm font-medium text-gray-600">Admission No.</label>
+                            <input type="text" id="admissionNo" class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="plusTwo" class="block text-sm font-medium text-gray-600">Plus Two (Subject)</label>
+                            <input type="text" id="plusTwo" class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                         <div>
+                            <label for="degree" class="block text-sm font-medium text-gray-600">Degree (and Subject)</label>
+                            <input type="text" id="degree" class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="darulHudaDegree" class="block text-sm font-medium text-gray-600">Darul Huda Degree Dept.</label>
+                            <input type="text" id="darulHudaDegree" class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                         <div>
+                            <label for="darulHudaPg" class="block text-sm font-medium text-gray-600">Darul Huda PG Dept.</label>
+                            <input type="text" id="darulHudaPg" class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label for="job" class="block text-sm font-medium text-gray-600">Job</label>
+                            <input type="text" id="job" class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                         <div>
+                            <label for="currentJob" class="block text-sm font-medium text-gray-600">Current Job</label>
+                            <input type="text" id="currentJob" class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                         <div>
+                            <label for="previousJob" class="block text-sm font-medium text-gray-600">Previous Job</label>
+                            <input type="text" id="previousJob" class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                    </div>
+                </fieldset>
+
+                <!-- Family Details -->
+                 <fieldset class="space-y-4">
+                    <legend class="text-lg font-semibold text-gray-700 border-b pb-2 mb-4">Family Details</legend>
+                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="fatherName" class="block text-sm font-medium text-gray-600">Father's Name</label>
+                            <input type="text" id="fatherName" class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                         <div>
+                            <label for="motherName" class="block text-sm font-medium text-gray-600">Mother's Name</label>
+                            <input type="text" id="motherName" class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                    </div>
+                    <div>
+                        <label for="maritalStatus" class="block text-sm font-medium text-gray-600">Marital Status</label>
+                        <select id="maritalStatus" class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                            <option value="Single">Single</option>
+                            <option value="Married">Married</option>
+                        </select>
+                    </div>
+                    <div id="married-fields" class="hidden space-y-4">
+                        <div>
+                            <label for="wifeName" class="block text-sm font-medium text-gray-600">Wife's Name</label>
+                            <input type="text" id="wifeName" class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                        <div class="grid grid-cols-3 gap-4">
+                            <div>
+                                <label for="children" class="block text-sm font-medium text-gray-600">Children</label>
+                                <input type="number" id="children" min="0" class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+                            <div>
+                                <label for="boys" class="block text-sm font-medium text-gray-600">Boys</label>
+                                <input type="number" id="boys" min="0" class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+                            <div>
+                                <label for="girls" class="block text-sm font-medium text-gray-600">Girls</label>
+                                <input type="number" id="girls" min="0" class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+            </form>
+            <div class="p-5 bg-gray-50 border-t border-gray-200">
+                <button type="submit" form="student-form" id="form-submit-btn" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg shadow-sm transition-transform transform hover:scale-101">
+                    Save Student
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Notification Toast -->
+    <div id="notification" class="fixed bottom-5 right-5 bg-gray-800 text-white py-3 px-6 rounded-lg shadow-lg hidden transform transition-all duration-300 ease-in-out z-50">
+        <p id="notification-message"></p>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="delete-confirm-modal" class="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
+         <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 text-center">
+            <h3 class="text-lg font-semibold text-gray-900">Are you sure?</h3>
+            <p class="text-gray-500 mt-2">This action cannot be undone. The student record will be permanently deleted.</p>
+            <div class="mt-6 flex justify-center gap-4">
+                <button id="cancel-delete-btn" class="px-6 py-2 bg-gray-100 text-gray-700 rounded-lg font-semibold hover:bg-gray-200">Cancel</button>
+                <button id="confirm-delete-btn" class="px-6 py-2 bg-red-500 text-white rounded-lg font-semibold hover:bg-red-600">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Student Profile View -->
+    <div id="profile-view" class="page-view max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="bg-white rounded-2xl shadow-2xl overflow-hidden">
+            <div class="flex items-center justify-between p-5 border-b border-gray-200">
+                <h2 class="text-xl font-bold">Student Profile</h2>
+                <button id="back-to-list-btn" class="text-gray-500 hover:text-gray-700 font-semibold text-sm">
+                    BACK TO LIST
+                </button>
+            </div>
+            <div id="profile-content" class="p-6 space-y-6">
+                <!-- Profile details will be injected here -->
+            </div>
+            <div id="profile-actions" class="p-5 bg-gray-50 border-t border-gray-200 text-right space-x-3 admin-only-block">
+                <!-- Admin buttons will be injected here -->
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+
+        // --- Admin Configuration ---
+        const ADMIN_CODE = "1234"; // IMPORTANT: Change this code for production
+
+        // --- Firebase Configuration ---
+        // IMPORTANT: Replace the following with your app's Firebase project configuration.
+        const firebaseConfig = {
+            apiKey: "AIzaSyBYCiz_Ec0GeQajAKP3RrxylR1bjIr9wnQ",
+
+  authDomain: "nishan-8d4db.firebaseapp.com",
+
+  databaseURL: "https://nishan-8d4db-default-rtdb.firebaseio.com",
+
+  projectId: "nishan-8d4db",
+
+  storageBucket: "nishan-8d4db.appspot.com",
+
+  messagingSenderId: "856716933837",
+
+  appId: "1:856716933837:web:b6114e617a0c001d3f8784",
+
+  measurementId: "G-ZB1X291PJY"
+
+        };
+
+        // --- Initialize Firebase ---
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const database = firebase.database();
+        const studentsRef = database.ref('students');
+        let allStudents = {}; // Local cache for students data
+
+        // --- DOM Element References ---
+        const addStudentBtn = document.getElementById('add-student-btn');
+        const studentForm = document.getElementById('student-form');
+        const studentList = document.getElementById('student-list');
+        const modalTitle = document.getElementById('modal-title');
+        const formSubmitBtn = document.getElementById('form-submit-btn');
+        const studentIdInput = document.getElementById('student-id');
+        const maritalStatusSelect = document.getElementById('maritalStatus');
+        const marriedFields = document.getElementById('married-fields');
+        const searchBar = document.getElementById('search-bar');
+        const noResultsDiv = document.getElementById('no-results');
+        const cancelFormBtn = document.getElementById('cancel-form-btn');
+        const batchFilter = document.getElementById('batch-filter');
+
+        // --- Login View Elements ---
+        const loginForm = document.getElementById('login-form');
+        const loginCodeInput = document.getElementById('login-code');
+        const loginError = document.getElementById('login-error');
+        const logoutBtn = document.getElementById('logout-btn');
+
+        // --- Profile View Elements ---
+        const profileContent = document.getElementById('profile-content');
+        const profileActions = document.getElementById('profile-actions');
+        const backToListBtn = document.getElementById('back-to-list-btn');
+
+        // --- Navigation Buttons ---
+        addStudentBtn.addEventListener('click', () => { window.location.hash = '#/new'; });
+        cancelFormBtn.addEventListener('click', () => { window.location.hash = '#/'; });
+        backToListBtn.addEventListener('click', () => { window.location.hash = '#/'; });
+
+        // --- Conditional Form Fields ---
+        maritalStatusSelect.addEventListener('change', () => {
+            if (maritalStatusSelect.value === 'Married') {
+                marriedFields.classList.remove('hidden');
+            } else {
+                marriedFields.classList.add('hidden');
+            }
+        });
+
+        // --- Notification Toast ---
+        const showNotification = (message, isError = false) => {
+            const notification = document.getElementById('notification');
+            const notificationMessage = document.getElementById('notification-message');
+            
+            notificationMessage.textContent = message;
+            notification.classList.remove('hidden', 'bg-red-500', 'bg-gray-800');
+            notification.classList.add(isError ? 'bg-red-500' : 'bg-gray-800');
+            
+            setTimeout(() => {
+                notification.classList.add('hidden');
+            }, 3000);
+        };
+        
+        // --- Form Submission (Add/Update) ---
+        studentForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const studentId = studentIdInput.value;
+
+            // Gather form data into an object
+            const studentData = {
+                fullName: document.getElementById('fullName').value.trim(),
+                dob: document.getElementById('dob').value,
+                birthPlace: document.getElementById('birthPlace').value.trim(),
+                address: document.getElementById('address').value.trim(),
+                phone: document.getElementById('phone').value.trim(),
+                whatsapp: document.getElementById('whatsapp').value.trim(),
+                location: document.getElementById('location').value.trim(),
+                district: document.getElementById('district').value.trim(),
+                mahallu: document.getElementById('mahallu').value.trim(),
+                atOwnHome: document.getElementById('atOwnHome').checked,
+                sslc: document.getElementById('sslc').checked,
+                batchNo: document.getElementById('batchNo').value.trim(),
+                admissionNo: document.getElementById('admissionNo').value.trim(),
+                plusTwo: document.getElementById('plusTwo').value.trim(),
+                degree: document.getElementById('degree').value.trim(),
+                darulHudaDegree: document.getElementById('darulHudaDegree').value.trim(),
+                darulHudaPg: document.getElementById('darulHudaPg').value.trim(),
+                isHudawi: document.getElementById('isHudawi').checked,
+                job: document.getElementById('job').value.trim(),
+                currentJob: document.getElementById('currentJob').value.trim(),
+                previousJob: document.getElementById('previousJob').value.trim(),
+                fatherName: document.getElementById('fatherName').value.trim(),
+                motherName: document.getElementById('motherName').value.trim(),
+                maritalStatus: document.getElementById('maritalStatus').value,
+                wifeName: document.getElementById('wifeName').value.trim(),
+                children: document.getElementById('children').value,
+                boys: document.getElementById('boys').value,
+                girls: document.getElementById('girls').value
+            };
+
+            // Basic validation
+            if (!studentData.fullName || !studentData.dob || !studentData.phone) {
+                showNotification('Please fill in all required fields (*).', true);
+                return;
+            }
+
+            try {
+                if (studentId) {
+                    // Update existing student
+                    await studentsRef.child(studentId).update(studentData);
+                    showNotification('Student updated successfully!');
+                } else {
+                    // Add new student
+                    await studentsRef.push(studentData);
+                    showNotification('Student added successfully!');
+                }
+                window.location.hash = '#/'; // Go back to list after saving
+            } catch (error) {
+                console.error("Error saving student data:", error);
+                showNotification('Failed to save student data.', true);
+            }
+        });
+
+        // --- Render Student Cards ---
+        const renderStudents = (students) => {
+            studentList.innerHTML = '';
+            const studentIds = Object.keys(students);
+
+            if (studentIds.length === 0) {
+                noResultsDiv.classList.remove('hidden');
+                studentList.classList.add('hidden');
+                return;
+            }
+            
+            noResultsDiv.classList.add('hidden');
+            studentList.classList.remove('hidden');
+            
+            studentIds.forEach(id => {
+                const student = students[id];
+                const card = document.createElement('div');
+                card.className = 'student-card bg-white rounded-xl shadow-md p-6 border border-gray-100 transform transition-transform hover:scale-105 hover:shadow-lg cursor-pointer';
+                card.style.animation = 'fadeIn 0.5s ease-out';
+                card.dataset.id = id;
+                
+                card.innerHTML = `
+                    <h3 class="text-xl font-bold text-gray-900 pointer-events-none">${student.fullName || 'N/A'}</h3>
+                    <p class="text-blue-500 font-medium pointer-events-none">${student.darulHudaPg || student.degree || 'Student'}</p>
+                    <div class="mt-4 space-y-2 text-sm text-gray-600 pointer-events-none">
+                        <p><span class="font-semibold">Place:</span> ${student.location || 'N/A'}, ${student.district || 'N/A'}</p>
+                        <p><span class="font-semibold">Phone:</span> ${student.phone || 'N/A'}</p>
+                         <p><span class="font-semibold">Mahallu:</span> ${student.mahallu || 'N/A'}</p>
+                    </div>
+                `;
+                studentList.appendChild(card);
+            });
+        };
+        
+        // --- Populate Batch Filter Dropdown ---
+        const populateBatchFilter = (students) => {
+            const batches = new Set();
+            for (const id in students) {
+                if (students[id].batchNo && students[id].batchNo.trim() !== '') {
+                    batches.add(students[id].batchNo.trim());
+                }
+            }
+            const sortedBatches = Array.from(batches).sort();
+            
+            // Save current value to restore it after repopulating
+            const currentBatch = batchFilter.value;
+            
+            batchFilter.innerHTML = '<option value="">Filter by Batch</option>'; 
+            
+            sortedBatches.forEach(batch => {
+                const option = document.createElement('option');
+                option.value = batch;
+                option.textContent = `Batch: ${batch}`;
+                batchFilter.appendChild(option);
+            });
+
+            // Restore previously selected value
+            batchFilter.value = currentBatch;
+        };
+        
+        // --- Filter and Search Logic ---
+        const applyFilters = () => {
+            const query = searchBar.value.toLowerCase().trim();
+            const selectedBatch = batchFilter.value;
+            let filteredStudents = {};
+
+            for (const id in allStudents) {
+                const student = allStudents[id];
+                
+                // Batch filter check first
+                const batchMatch = !selectedBatch || (student.batchNo && student.batchNo.trim() === selectedBatch);
+
+                // If batch matches, then check search query
+                if (batchMatch) {
+                    if (query) {
+                        const searchableFields = [
+                            student.fullName,
+                            student.location, // Place
+                            student.district,
+                            student.degree,
+                            student.darulHudaPg,
+                            student.mahallu
+                        ].join(' ').toLowerCase();
+
+                        if (searchableFields.includes(query)) {
+                            filteredStudents[id] = student;
+                        }
+                    } else {
+                        // No search query, so it's a match
+                        filteredStudents[id] = student;
+                    }
+                }
+            }
+            renderStudents(filteredStudents);
+        };
+
+        // --- Event Listeners for Filters ---
+        searchBar.addEventListener('input', applyFilters);
+        batchFilter.addEventListener('change', applyFilters);
+
+        // --- Fetch and Display Students (Real-time) ---
+        studentsRef.on('value', (snapshot) => {
+            const data = snapshot.val();
+            allStudents = data || {};
+            populateBatchFilter(allStudents); // Populate/update the batch dropdown
+            applyFilters(); // Apply current filters to the new data
+        }, (error) => {
+            console.error("Firebase read failed:", error);
+            showNotification('Failed to fetch student data.', true);
+        });
+
+        // --- Show Full Profile on Card Click (Event Delegation) ---
+        studentList.addEventListener('click', (e) => {
+            const card = e.target.closest('.student-card');
+            if (card) {
+                const studentId = card.dataset.id;
+                window.location.hash = `#/profile/${studentId}`;
+            }
+        });
+        
+        // --- Page Population Logic ---
+        const showFormPage = async (studentId = null) => {
+            studentForm.reset();
+            studentIdInput.value = '';
+            marriedFields.classList.add('hidden');
+            
+            if (studentId) {
+                // Editing existing student
+                modalTitle.textContent = 'Edit Student';
+                formSubmitBtn.textContent = 'Update Student';
+                const student = allStudents[studentId];
+                if (student) {
+                    // Populate form
+                    studentIdInput.value = studentId;
+                    document.getElementById('fullName').value = student.fullName || '';
+                    document.getElementById('dob').value = student.dob || '';
+                    document.getElementById('birthPlace').value = student.birthPlace || '';
+                    document.getElementById('address').value = student.address || '';
+                    document.getElementById('phone').value = student.phone || '';
+                    document.getElementById('whatsapp').value = student.whatsapp || '';
+                    document.getElementById('location').value = student.location || '';
+                    document.getElementById('district').value = student.district || '';
+                    document.getElementById('mahallu').value = student.mahallu || '';
+                    document.getElementById('atOwnHome').checked = student.atOwnHome || false;
+                    document.getElementById('sslc').checked = student.sslc || false;
+                    document.getElementById('batchNo').value = student.batchNo || '';
+                    document.getElementById('admissionNo').value = student.admissionNo || '';
+                    document.getElementById('plusTwo').value = student.plusTwo || '';
+                    document.getElementById('degree').value = student.degree || '';
+                    document.getElementById('darulHudaDegree').value = student.darulHudaDegree || '';
+                    document.getElementById('darulHudaPg').value = student.darulHudaPg || '';
+                    document.getElementById('isHudawi').checked = student.isHudawi || false;
+                    document.getElementById('job').value = student.job || '';
+                    document.getElementById('currentJob').value = student.currentJob || '';
+                    document.getElementById('previousJob').value = student.previousJob || '';
+                    document.getElementById('fatherName').value = student.fatherName || '';
+                    document.getElementById('motherName').value = student.motherName || '';
+                    maritalStatusSelect.value = student.maritalStatus || 'Single';
+                    
+                    maritalStatusSelect.dispatchEvent(new Event('change'));
+
+                    if (student.maritalStatus === 'Married') {
+                        document.getElementById('wifeName').value = student.wifeName || '';
+                        document.getElementById('children').value = student.children || '';
+                        document.getElementById('boys').value = student.boys || '';
+                        document.getElementById('girls').value = student.girls || '';
+                    }
+                } else {
+                     showNotification('Student data not found.', true);
+                     window.location.hash = '#/'; // Go back if student not found
+                }
+            } else {
+                // Adding new student
+                modalTitle.textContent = 'Add New Student';
+                formSubmitBtn.textContent = 'Save Student';
+            }
+        };
+
+        // --- Delete Confirmation Modal ---
+        const deleteConfirmModal = document.getElementById('delete-confirm-modal');
+        const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
+        const cancelDeleteBtn = document.getElementById('cancel-delete-btn');
+        let studentIdToDelete = null;
+
+        const showDeleteConfirmation = (studentId) => {
+            studentIdToDelete = studentId;
+            deleteConfirmModal.classList.remove('hidden');
+        };
+
+        const hideDeleteConfirmation = () => {
+            studentIdToDelete = null;
+            deleteConfirmModal.classList.add('hidden');
+        };
+        
+        cancelDeleteBtn.addEventListener('click', hideDeleteConfirmation);
+
+        confirmDeleteBtn.addEventListener('click', async () => {
+            if (studentIdToDelete) {
+                try {
+                    await studentsRef.child(studentIdToDelete).remove();
+                    showNotification('Student deleted successfully.');
+                    window.location.hash = '#/'; // Go back to list after delete
+                } catch (error) {
+                    console.error("Error deleting student:", error);
+                    showNotification('Failed to delete student.', true);
+                } finally {
+                    hideDeleteConfirmation();
+                }
+            }
+        });
+
+        // --- Show Student Profile Details ---
+        const showProfilePage = (studentId) => {
+            const student = allStudents[studentId];
+            if (!student) {
+                window.location.hash = '#/';
+                return;
+            };
+
+            const detailItem = (label, value, isToggle = false) => {
+                let displayValue = value;
+                if (isToggle) {
+                    displayValue = value ? 'Yes' : 'No';
+                }
+                return `
+                    <div class="py-2 sm:grid sm:grid-cols-3 sm:gap-4">
+                        <dt class="text-sm font-medium text-gray-500">${label}</dt>
+                        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">${displayValue || 'N/A'}</dd>
+                    </div>`;
+            };
+
+            profileContent.innerHTML = `
+                <div class="divide-y divide-gray-200">
+                    <h3 class="text-lg font-semibold text-gray-700 pb-2 mb-2">Personal Information</h3>
+                    <dl>
+                        ${detailItem('Full Name', student.fullName)}
+                        ${detailItem('Date of Birth', student.dob)}
+                        ${detailItem('Birth Place', student.birthPlace)}
+                        ${detailItem('Address', student.address)}
+                        ${detailItem('Phone Number', student.phone)}
+                        ${detailItem('WhatsApp Number', student.whatsapp)}
+                        ${detailItem('Location', student.location)}
+                        ${detailItem('District', student.district)}
+                        ${detailItem('Mahallu Masjid', student.mahallu)}
+                        ${detailItem('At Own Home', student.atOwnHome, true)}
+                    </dl>
+                </div>
+                <div class="divide-y divide-gray-200">
+                    <h3 class="text-lg font-semibold text-gray-700 pt-4 pb-2 mb-2">Educational Information</h3>
+                    <dl>
+                        ${detailItem('SSLC Holder', student.sslc, true)}
+                        ${detailItem('Is Hudawi', student.isHudawi, true)}
+                        ${detailItem('Batch No.', student.batchNo)}
+                        ${detailItem('Admission No.', student.admissionNo)}
+                        ${detailItem('Plus Two (Subject)', student.plusTwo)}
+                        ${detailItem('Degree (Subject)', student.degree)}
+                        ${detailItem('Darul Huda Degree Dept.', student.darulHudaDegree)}
+                        ${detailItem('Darul Huda PG Dept.', student.darulHudaPg)}
+                        ${detailItem('Job', student.job)}
+                        ${detailItem('Current Job', student.currentJob)}
+                        ${detailItem('Previous Job', student.previousJob)}
+                    </dl>
+                </div>
+                 <div class="divide-y divide-gray-200">
+                    <h3 class="text-lg font-semibold text-gray-700 pt-4 pb-2 mb-2">Family Details</h3>
+                    <dl>
+                        ${detailItem('Father\'s Name', student.fatherName)}
+                        ${detailItem('Mother\'s Name', student.motherName)}
+                        ${detailItem('Marital Status', student.maritalStatus)}
+                        ${student.maritalStatus === 'Married' ? `
+                            ${detailItem('Wife\'s Name', student.wifeName)}
+                            ${detailItem('Children', student.children)}
+                            ${detailItem('Boys', student.boys)}
+                            ${detailItem('Girls', student.girls)}
+                        ` : ''}
+                    </dl>
+                </div>
+            `;
+            
+            profileActions.innerHTML = `
+                <button id="profile-edit-btn" class="text-sm font-semibold bg-blue-500 text-white hover:bg-blue-600 px-4 py-2 rounded-lg">Edit</button>
+                <button id="profile-delete-btn" class="text-sm font-semibold bg-red-500 text-white hover:bg-red-600 px-4 py-2 rounded-lg">Delete</button>
+            `;
+            
+            document.getElementById('profile-edit-btn').onclick = () => { window.location.hash = `#/edit/${studentId}`; };
+            document.getElementById('profile-delete-btn').onclick = () => showDeleteConfirmation(studentId);
+        };
+
+        // --- Simple Client-Side Router ---
+        const router = () => {
+            // Reset scroll position to the top for a page-like feel
+            window.scrollTo(0, 0);
+
+             // Check admin session first
+            const isAdmin = sessionStorage.getItem('isAdmin') === 'true';
+            // Reset only the view-specific classes, preserving others
+            document.body.classList.remove('show-login', 'show-list', 'show-form', 'show-profile');
+
+            if (!isAdmin) {
+                document.body.classList.remove('admin-logged-in');
+                document.body.classList.add('show-login');
+                return;
+            }
+
+            document.body.classList.add('admin-logged-in');
+
+            const path = window.location.hash.slice(2) || '/'; // Remove '#/'
+            const parts = path.split('/');
+            const view = parts[0] || 'list';
+            const id = parts[1] || null;
+
+            switch(view) {
+                case 'new':
+                    document.body.classList.add('show-form');
+                    showFormPage();
+                    break;
+                case 'edit':
+                    document.body.classList.add('show-form');
+                    showFormPage(id);
+                    break;
+                case 'profile':
+                    document.body.classList.add('show-profile');
+                    showProfilePage(id);
+                    break;
+                default:
+                    document.body.classList.add('show-list');
+                    break;
+            }
+        };
+
+        // --- Admin Login & Session Logic ---
+        const handleLogin = () => {
+            const enteredCode = loginCodeInput.value;
+            if (enteredCode === ADMIN_CODE) {
+                sessionStorage.setItem('isAdmin', 'true');
+                loginError.textContent = '';
+                loginCodeInput.value = '';
+                window.location.hash = '#/'; // Set hash for correct URL
+                router(); // Manually call router to ensure UI update
+            } else {
+                loginError.textContent = 'Incorrect code. Please try again.';
+            }
+        };
+
+        const handleLogout = () => {
+            sessionStorage.removeItem('isAdmin');
+            window.location.hash = '#/'; // Set hash for correct URL
+            router(); // Manually call router to ensure UI update
+        };
+
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            handleLogin();
+        });
+
+        logoutBtn.addEventListener('click', handleLogout);
+
+        // --- Initial Load & Route Handling ---
+        window.addEventListener('hashchange', router);
+        router(); // Call router on initial page load
+
+    }); // End of DOMContentLoaded
+    </script>
+
+</body>
+</html>
+
