@@ -5,888 +5,759 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Alumni Student Register</title>
     
-    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Firebase SDK (v8.10.0) -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     
-    <!-- Google Fonts: Inter -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     
-    <!-- Custom Styles for iOS look and feel -->
     <style>
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            background-color: #f8f8fa; /* A slightly off-white, iOS-like background */
+            font-family: 'Inter', sans-serif;
+            background-color: #ffffff;
         }
-
-        /* Custom iOS-style toggle switch */
-        .toggle-checkbox:checked {
-            right: 0;
-            border-color: #34C759;
-        }
-        .toggle-checkbox:checked + .toggle-label {
-            background-color: #34C759;
-        }
-        
-        /* Animation for modal and notifications */
-        .fade-in { animation: fadeIn 0.3s ease-out forwards; }
-        .fade-out { animation: fadeOut 0.3s ease-in forwards; }
-        @keyframes fadeIn { from { opacity: 0; transform: scale(0.95) translateY(-10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
-        @keyframes fadeOut { from { opacity: 1; transform: scale(1) translateY(0); } to { opacity: 0; transform: scale(0.95) translateY(-10px); } }
-
-        /* Custom scrollbar for a cleaner look */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: #f1f1f1; }
-        ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
-        
-        /* Admin-only controls are hidden by default */
-        .admin-only {
-            display: none;
-        }
-        
-        /* When admin is logged in, show the controls */
-        body.admin-logged-in .admin-only {
-            display: inline-flex; /* Use flex for buttons */
-        }
-        
-        body.admin-logged-in .admin-only-block {
-             display: block; /* Use block for other elements if needed */
-        }
-
-        /* All page views are hidden by default */
-        .page-view {
-            display: none;
-        }
-        
-        /* Logic to show the correct view based on body class */
-        body.show-login #admin-login-view {
-            display: flex;
-        }
-
+        .page-view { display: none; }
         body.show-list #list-view,
         body.show-form #form-view,
-        body.show-profile #profile-view {
-            display: block;
+        body.show-profile #profile-view,
+        body.show-bulk-upload #bulk-upload-view { display: block; }
+        
+        .admin-only { display: none; }
+        body.admin-logged-in .admin-only { display: inline-flex; }
+
+        .student-table {
+            border-collapse: collapse;
+            width: 100%;
+            font-size: 0.9em;
+        }
+        .student-table th, .student-table td {
+            border: 1px solid #e2e8f0;
+            padding: 12px 15px;
+            text-align: left;
+        }
+        .student-table thead th {
+            background-color: #f8fafc;
+            font-weight: 600;
+        }
+        .student-table tbody tr {
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out;
+        }
+        .student-table tbody tr:hover {
+            background-color: #f1f5f9;
+        }
+        
+        .hudawi-badge {
+            display: inline-block;
+            background-color: #16a34a;
+            color: white;
+            padding: 2px 10px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            border-radius: 9999px;
+            margin-left: 12px;
+            vertical-align: middle;
         }
 
+        /* --- NEW: Skeleton Loader Styles --- */
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .skeleton-cell div {
+            height: 1.25rem;
+            background-color: #e2e8f0;
+            border-radius: 0.25rem;
+            animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        /* --- END NEW --- */
+        
+        /* --- MODIFIED: Heavily improved Print Styles --- */
+        @media print {
+            body {
+                background-color: #fff !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+            body > * {
+                display: none !important;
+            }
+            .max-w-7xl {
+                 display: block !important;
+                 padding: 0 !important;
+                 margin: 0 !important;
+                 max-width: 100% !important;
+                 border: none !important;
+                 box-shadow: none !important;
+            }
+            .max-w-7xl > * {
+                 display: none !important;
+            }
+            #profile-view {
+                display: block !important;
+                margin: 0 !important;
+                padding: 0.75in !important; /* Slightly smaller margin */
+                border: none !important;
+                box-shadow: none !important;
+                max-width: 100% !important;
+            }
+            #profile-content, #profile-content * {
+                display: block !important;
+                color: #000 !important;
+                background-color: transparent !important;
+                box-shadow: none !important;
+                border-color: #000 !important;
+            }
+            #profile-content h2 {
+                font-size: 24pt !important;
+                font-weight: bold;
+                margin-bottom: 0px !important;
+            }
+            #profile-content .text-lg { /* Profile subtitle */
+                font-size: 14pt !important;
+                margin-bottom: 2rem !important;
+                color: #333 !important;
+            }
+            #profile-content h3 {
+                font-size: 16pt !important;
+                font-weight: bold;
+                border-bottom: 2px solid #000 !important;
+                margin-top: 1.5rem !important;
+                padding-bottom: 4px !important;
+                page-break-after: avoid;
+            }
+            #profile-content > div:not(:first-child) h3 {
+                 page-break-before: auto;
+            }
+            .hudawi-badge {
+                border: 1px solid #000 !important;
+                padding: 2px 8px !important;
+                font-size: 10pt !important;
+                font-weight: bold !important;
+                color: #000 !important;
+                vertical-align: baseline;
+                margin-left: 1rem;
+            }
+
+            /* NEW Grid layout for DL */
+            dl {
+                border-top: 1px solid #ccc;
+                display: grid;
+                grid-template-columns: 1fr 1fr; /* Two columns */
+                gap: 0 1.5rem; /* Gap between columns */
+            }
+            dl > div { /* This targets the detailItem div */
+                page-break-inside: avoid;
+                padding: 8px 0 !important;
+                border-bottom: 1px solid #ccc;
+                /* By default, span one column */
+            }
+            dl > div.print-list-item {
+                grid-column: 1 / -1; /* Make list items span full width */
+            }
+            dl > div:not(.print-list-item) {
+                display: grid;
+                grid-template-columns: 140px 1fr; /* Label width + value */
+                gap: 0.5rem;
+            }
+            dl > div dt {
+                font-weight: bold !important;
+                font-size: 11pt;
+                padding-top: 0;
+            }
+            dl > div dd {
+                font-size: 11pt;
+                padding-left: 0 !important;
+                margin-left: 0 !important;
+            }
+            dl > div dd ul {
+                padding-left: 1rem !important;
+                margin-top: 4px !important;
+            }
+            dl > div dd li {
+                list-style-type: disc !important;
+                margin-left: 1rem !important;
+            }
+        }
     </style>
 </head>
 <body class="antialiased text-gray-800">
 
-    <!-- Admin Login View -->
-    <div id="admin-login-view" class="page-view min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
-        <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-sm text-center">
-            <h2 class="text-2xl font-bold mb-2">Admin Access</h2>
-            <p class="text-gray-500 mb-6">Please enter the login code to continue.</p>
-            <form id="login-form">
-                <input type="password" id="login-code" placeholder="Enter code" class="w-full text-center text-lg border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
-                <p id="login-error" class="text-red-500 text-sm mt-2 h-4"></p>
-                <button type="submit" class="w-full mt-4 bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg shadow-sm transition">
-                    Login
-                </button>
-            </form>
-        </div>
-    </div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
-    <!-- Main App Container / Student List View -->
-    <div id="list-view" class="page-view max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        
-        <!-- Header -->
-        <header class="flex items-center justify-between mb-6">
+        <header class="flex items-center justify-between mb-8 pb-4 border-b no-print">
             <div>
                 <h1 class="text-3xl font-bold text-gray-900">Alumni Register</h1>
-                <p class="text-gray-500 mt-1">Manage and search for student records.</p>
+                <p class="text-gray-500 mt-1">Darunnajath Islamic Complex, Vallappuzha</p>
             </div>
             <div class="flex items-center space-x-4">
-                <button id="add-student-btn" class="admin-only bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-5 rounded-lg shadow-sm transition-transform transform hover:scale-105">
+                <button id="add-student-btn" class="admin-only bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-5 rounded-md shadow-sm">
                     Add Student
                 </button>
-                <button id="logout-btn" class="admin-only bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 px-5 rounded-lg shadow-sm">
+                <button id="bulk-upload-btn" class="admin-only bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-5 rounded-md shadow-sm">
+                    Bulk Upload
+                </button>
+                <button id="logout-btn" class="admin-only bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 px-5 rounded-md">
                     Logout
                 </button>
             </div>
         </header>
 
-        <!-- Search and Filter Bar -->
-        <div class="flex flex-col md:flex-row items-center gap-4 mb-6">
-            <!-- Search Bar -->
-            <div class="relative w-full flex-grow">
-                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
-                    </svg>
-                </div>
-                <input type="text" id="search-bar" placeholder="Search by Name, Place, District, Degree, PG Dept, or Mahallu..." class="block w-full bg-white border border-gray-200 rounded-xl py-3 pl-10 pr-3 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
-            </div>
-            <!-- Batch Filter -->
-            <div class="w-full md:w-auto">
-                <select id="batch-filter" class="block w-full md:w-48 bg-white border border-gray-200 rounded-xl py-3 px-4 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+        <div id="list-view" class="page-view">
+            <div class="flex flex-col md:flex-row items-center gap-4 mb-6 no-print">
+                <input type="text" id="search-bar" placeholder="Search by any detail..." class="block w-full border border-gray-300 rounded-md p-3 shadow-sm focus:ring-2 focus:ring-blue-500">
+                <select id="batch-filter" class="block w-full md:w-56 border border-gray-300 rounded-md p-3 shadow-sm focus:ring-2 focus:ring-blue-500">
                     <option value="">Filter by Batch</option>
-                    <!-- Batch options will be dynamically populated -->
                 </select>
             </div>
-        </div>
+            <main id="student-list-container" class="bg-white border border-gray-200 rounded-lg overflow-x-auto">
+                <table class="student-table w-full">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Batch</th>
+                            <th>Phone</th>
+                            <th>Location</th>
+                        </tr>
+                    </thead>
+                    <tbody id="student-list-body" style="display: none;"></tbody>
+                    
+                    <tbody id="skeleton-loader-body">
+                        </tbody>
+                    </table>
+            </main>
 
-
-        <!-- Student List Container -->
-        <main id="student-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <!-- Student cards will be dynamically inserted here -->
-        </main>
-        <div id="no-results" class="hidden text-center py-16">
-            <h3 class="text-xl font-semibold text-gray-500">No students found.</h3>
-            <p class="text-gray-400">Try adjusting your search or add a new student.</p>
-        </div>
-    </div>
-
-    <!-- Add/Edit Student Form View -->
-    <div id="form-view" class="page-view max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div class="bg-white rounded-2xl shadow-2xl overflow-hidden">
-            <div class="flex items-center justify-between p-5 border-b border-gray-200">
-                <h2 id="modal-title" class="text-xl font-bold">Add New Student</h2>
-                <button id="cancel-form-btn" class="text-gray-500 hover:text-gray-700 font-semibold text-sm">
-                    CANCEL
+            <div id="load-more-container" class="text-center py-6 no-print hidden">
+                <button id="load-more-btn" class="bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold py-2 px-6 rounded-md shadow-sm">
+                    Load More Students
                 </button>
             </div>
-            <form id="student-form" class="p-6 space-y-8 overflow-y-auto" style="max-height: 80vh;">
-                <input type="hidden" id="student-id">
-                
-                <!-- Personal Information -->
-                <fieldset class="space-y-4">
-                    <legend class="text-lg font-semibold text-gray-700 border-b pb-2 mb-4">Personal Information</legend>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div class="md:col-span-2">
-                            <label for="fullName" class="block text-sm font-medium text-gray-600">Full Name *</label>
-                            <input type="text" id="fullName" class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500" required>
-                        </div>
-                        <div>
-                            <label for="dob" class="block text-sm font-medium text-gray-600">Date of Birth *</label>
-                            <input type="date" id="dob" class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500" required>
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label for="birthPlace" class="block text-sm font-medium text-gray-600">Birth Place</label>
-                            <input type="text" id="birthPlace" class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
-                        </div>
-                         <div>
-                            <label for="address" class="block text-sm font-medium text-gray-600">Address</label>
-                            <textarea id="address" rows="1" class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"></textarea>
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label for="phone" class="block text-sm font-medium text-gray-600">Phone Number *</label>
-                            <input type="tel" id="phone" class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500" required>
-                        </div>
-                        <div>
-                            <label for="whatsapp" class="block text-sm font-medium text-gray-600">WhatsApp Number</label>
-                            <input type="tel" id="whatsapp" class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
-                        </div>
-                    </div>
-                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div>
-                            <label for="location" class="block text-sm font-medium text-gray-600">Location</label>
-                            <input type="text" id="location" class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
-                        </div>
-                        <div>
-                            <label for="district" class="block text-sm font-medium text-gray-600">District</label>
-                            <input type="text" id="district" class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
-                        </div>
-                         <div>
-                            <label for="mahallu" class="block text-sm font-medium text-gray-600">Mahallu Masjid</label>
-                            <input type="text" id="mahallu" class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
-                        </div>
-                    </div>
-                    <div>
-                         <label class="block text-sm font-medium text-gray-600">At Own Home?</label>
-                         <div class="mt-2 flex items-center">
-                            <span class="text-sm mr-3">No</span>
-                            <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
-                                <input type="checkbox" id="atOwnHome" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-2 appearance-none cursor-pointer"/>
-                                <label for="atOwnHome" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
-                            </div>
-                            <span class="text-sm text-gray-600">Yes</span>
-                        </div>
-                    </div>
-                </fieldset>
-
-                <!-- Educational Information -->
-                <fieldset class="space-y-4">
-                    <legend class="text-lg font-semibold text-gray-700 border-b pb-2 mb-4">Educational Information</legend>
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-center">
-                        <div class="flex items-center space-x-4">
-                             <label class="block text-sm font-medium text-gray-600">SSLC Holder?</label>
-                             <div class="flex items-center">
-                                <span class="text-sm mr-3">No</span>
-                                <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
-                                    <input type="checkbox" id="sslc" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-2 appearance-none cursor-pointer"/>
-                                    <label for="sslc" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
-                                </div>
-                                <span class="text-sm text-gray-600">Yes</span>
-                            </div>
-                        </div>
-                         <div class="flex items-center space-x-4">
-                             <label class="block text-sm font-medium text-gray-600">Is Hudawi?</label>
-                             <div class="flex items-center">
-                                <span class="text-sm mr-3">No</span>
-                                <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
-                                    <input type="checkbox" id="isHudawi" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-2 appearance-none cursor-pointer"/>
-                                    <label for="isHudawi" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
-                                </div>
-                                <span class="text-sm text-gray-600">Yes</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                           <label for="batchNo" class="block text-sm font-medium text-gray-600">Batch No.</label>
-                           <input type="text" id="batchNo" class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
-                        </div>
-                        <div>
-                            <label for="admissionNo" class="block text-sm font-medium text-gray-600">Admission No.</label>
-                            <input type="text" id="admissionNo" class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label for="plusTwo" class="block text-sm font-medium text-gray-600">Plus Two (Subject)</label>
-                            <input type="text" id="plusTwo" class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
-                        </div>
-                         <div>
-                            <label for="degree" class="block text-sm font-medium text-gray-600">Degree (and Subject)</label>
-                            <input type="text" id="degree" class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label for="darulHudaDegree" class="block text-sm font-medium text-gray-600">Darul Huda Degree Dept.</label>
-                            <input type="text" id="darulHudaDegree" class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
-                        </div>
-                         <div>
-                            <label for="darulHudaPg" class="block text-sm font-medium text-gray-600">Darul Huda PG Dept.</label>
-                            <input type="text" id="darulHudaPg" class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div>
-                            <label for="job" class="block text-sm font-medium text-gray-600">Job</label>
-                            <input type="text" id="job" class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
-                        </div>
-                         <div>
-                            <label for="currentJob" class="block text-sm font-medium text-gray-600">Current Job</label>
-                            <input type="text" id="currentJob" class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
-                        </div>
-                         <div>
-                            <label for="previousJob" class="block text-sm font-medium text-gray-600">Previous Job</label>
-                            <input type="text" id="previousJob" class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
-                        </div>
-                    </div>
-                </fieldset>
-
-                <!-- Family Details -->
-                 <fieldset class="space-y-4">
-                    <legend class="text-lg font-semibold text-gray-700 border-b pb-2 mb-4">Family Details</legend>
-                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label for="fatherName" class="block text-sm font-medium text-gray-600">Father's Name</label>
-                            <input type="text" id="fatherName" class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
-                        </div>
-                         <div>
-                            <label for="motherName" class="block text-sm font-medium text-gray-600">Mother's Name</label>
-                            <input type="text" id="motherName" class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
-                        </div>
-                    </div>
-                    <div>
-                        <label for="maritalStatus" class="block text-sm font-medium text-gray-600">Marital Status</label>
-                        <select id="maritalStatus" class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
-                            <option value="Single">Single</option>
-                            <option value="Married">Married</option>
-                        </select>
-                    </div>
-                    <div id="married-fields" class="hidden space-y-4">
-                        <div>
-                            <label for="wifeName" class="block text-sm font-medium text-gray-600">Wife's Name</label>
-                            <input type="text" id="wifeName" class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
-                        </div>
-                        <div class="grid grid-cols-3 gap-4">
-                            <div>
-                                <label for="children" class="block text-sm font-medium text-gray-600">Children</label>
-                                <input type="number" id="children" min="0" class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
-                            </div>
-                            <div>
-                                <label for="boys" class="block text-sm font-medium text-gray-600">Boys</label>
-                                <input type="number" id="boys" min="0" class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
-                            </div>
-                            <div>
-                                <label for="girls" class="block text-sm font-medium text-gray-600">Girls</label>
-                                <input type="number" id="girls" min="0" class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
-                            </div>
-                        </div>
-                    </div>
-                </fieldset>
-            </form>
-            <div class="p-5 bg-gray-50 border-t border-gray-200">
-                <button type="submit" form="student-form" id="form-submit-btn" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg shadow-sm transition-transform transform hover:scale-101">
-                    Save Student
-                </button>
+            <div id="no-results" class="hidden text-center py-16">
+                <h3 class="text-xl font-semibold text-gray-500">No students found.</h3>
+                <p class="text-gray-400">Try adjusting your search or add a new student.</p>
             </div>
         </div>
+        
+        <div id="bulk-upload-view" class="page-view">
+            <div class="bg-white p-8 border border-gray-200 rounded-lg">
+                <div class="flex items-center justify-between pb-4 border-b mb-6">
+                    <h2 class="text-2xl font-bold">Bulk Upload Students</h2>
+                     <button id="back-to-list-btn-from-bulk" class="text-gray-600 hover:text-gray-900 font-semibold">CANCEL</button>
+                </div>
+                <div class="space-y-4">
+                    <p class="text-gray-600">Upload multiple students at once using an Excel file. Dates should be in <strong>YYYY-MM-DD</strong> format. Checkboxes should be <strong>TRUE</strong> or <strong>FALSE</strong>. For fields that accept multiple entries (like Degrees or PGs), separate each entry with a pipe character (<strong>|</strong>).</p>
+                    <button id="download-template-btn" class="inline-flex items-center gap-2 bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded-md">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
+                        Download Template
+                    </button>
+                </div>
+                <div class="mt-8 pt-6 border-t">
+                    <label for="excel-file-input" class="block text-sm font-medium text-gray-700 mb-2">Upload Completed Excel File</label>
+                    <input type="file" id="excel-file-input" accept=".xlsx, .xls" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"/>
+                    <button id="upload-data-btn" class="mt-4 w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-md disabled:bg-gray-400" disabled>
+                        Upload Data
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="form-view" class="page-view"></div>
+        <div id="profile-view" class="page-view"></div>
     </div>
-    
-    <!-- Notification Toast -->
-    <div id="notification" class="fixed bottom-5 right-5 bg-gray-800 text-white py-3 px-6 rounded-lg shadow-lg hidden transform transition-all duration-300 ease-in-out z-50">
+
+    <div id="notification" class="fixed bottom-5 right-5 bg-gray-800 text-white py-3 px-6 rounded-lg shadow-lg hidden no-print">
         <p id="notification-message"></p>
     </div>
 
-    <!-- Delete Confirmation Modal -->
-    <div id="delete-confirm-modal" class="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
-         <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 text-center">
+    <div id="delete-confirm-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50 no-print">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-sm p-6 text-center">
             <h3 class="text-lg font-semibold text-gray-900">Are you sure?</h3>
-            <p class="text-gray-500 mt-2">This action cannot be undone. The student record will be permanently deleted.</p>
+            <p class="text-gray-500 mt-2">This will permanently delete the student record.</p>
             <div class="mt-6 flex justify-center gap-4">
-                <button id="cancel-delete-btn" class="px-6 py-2 bg-gray-100 text-gray-700 rounded-lg font-semibold hover:bg-gray-200">Cancel</button>
-                <button id="confirm-delete-btn" class="px-6 py-2 bg-red-500 text-white rounded-lg font-semibold hover:bg-red-600">Delete</button>
+                <button id="cancel-delete-btn" class="px-6 py-2 bg-gray-100 text-gray-700 rounded-md font-semibold hover:bg-gray-200">Cancel</button>
+                <button id="confirm-delete-btn" class="px-6 py-2 bg-red-600 text-white rounded-md font-semibold hover:bg-red-700">Delete</button>
             </div>
         </div>
     </div>
-
-    <!-- Student Profile View -->
-    <div id="profile-view" class="page-view max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div class="bg-white rounded-2xl shadow-2xl overflow-hidden">
-            <div class="flex items-center justify-between p-5 border-b border-gray-200">
-                <h2 class="text-xl font-bold">Student Profile</h2>
-                <button id="back-to-list-btn" class="text-gray-500 hover:text-gray-700 font-semibold text-sm">
-                    BACK TO LIST
-                </button>
-            </div>
-            <div id="profile-content" class="p-6 space-y-6">
-                <!-- Profile details will be injected here -->
-            </div>
-            <div id="profile-actions" class="p-5 bg-gray-50 border-t border-gray-200 text-right space-x-3 admin-only-block">
-                <!-- Admin buttons will be injected here -->
-            </div>
-        </div>
-    </div>
-
 
     <script>
-    document.addEventListener('DOMContentLoaded', () => {
-
-        // --- Admin Configuration ---
-        const ADMIN_CODE = "1234"; // IMPORTANT: Change this code for production
-
-        // --- Firebase Configuration ---
-        // IMPORTANT: Replace the following with your app's Firebase project configuration.
-        const firebaseConfig = {
-            apiKey: "AIzaSyBYCiz_Ec0GeQajAKP3RrxylR1bjIr9wnQ",
-
-  authDomain: "nishan-8d4db.firebaseapp.com",
-
-  databaseURL: "https://nishan-8d4db-default-rtdb.firebaseio.com",
-
-  projectId: "nishan-8d4db",
-
-  storageBucket: "nishan-8d4db.appspot.com",
-
-  messagingSenderId: "856716933837",
-
-  appId: "1:856716933837:web:b6114e617a0c001d3f8784",
-
-  measurementId: "G-ZB1X291PJY"
-
-        };
-
-        // --- Initialize Firebase ---
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
-        const database = firebase.database();
-        const studentsRef = database.ref('students');
-        let allStudents = {}; // Local cache for students data
-
-        // --- DOM Element References ---
-        const addStudentBtn = document.getElementById('add-student-btn');
-        const studentForm = document.getElementById('student-form');
-        const studentList = document.getElementById('student-list');
-        const modalTitle = document.getElementById('modal-title');
-        const formSubmitBtn = document.getElementById('form-submit-btn');
-        const studentIdInput = document.getElementById('student-id');
-        const maritalStatusSelect = document.getElementById('maritalStatus');
-        const marriedFields = document.getElementById('married-fields');
-        const searchBar = document.getElementById('search-bar');
-        const noResultsDiv = document.getElementById('no-results');
-        const cancelFormBtn = document.getElementById('cancel-form-btn');
-        const batchFilter = document.getElementById('batch-filter');
-
-        // --- Login View Elements ---
-        const loginForm = document.getElementById('login-form');
-        const loginCodeInput = document.getElementById('login-code');
-        const loginError = document.getElementById('login-error');
-        const logoutBtn = document.getElementById('logout-btn');
-
-        // --- Profile View Elements ---
-        const profileContent = document.getElementById('profile-content');
-        const profileActions = document.getElementById('profile-actions');
-        const backToListBtn = document.getElementById('back-to-list-btn');
-
-        // --- Navigation Buttons ---
-        addStudentBtn.addEventListener('click', () => { window.location.hash = '#/new'; });
-        cancelFormBtn.addEventListener('click', () => { window.location.hash = '#/'; });
-        backToListBtn.addEventListener('click', () => { window.location.hash = '#/'; });
-
-        // --- Conditional Form Fields ---
-        maritalStatusSelect.addEventListener('change', () => {
-            if (maritalStatusSelect.value === 'Married') {
-                marriedFields.classList.remove('hidden');
-            } else {
-                marriedFields.classList.add('hidden');
-            }
-        });
-
-        // --- Notification Toast ---
-        const showNotification = (message, isError = false) => {
-            const notification = document.getElementById('notification');
-            const notificationMessage = document.getElementById('notification-message');
-            
-            notificationMessage.textContent = message;
-            notification.classList.remove('hidden', 'bg-red-500', 'bg-gray-800');
-            notification.classList.add(isError ? 'bg-red-500' : 'bg-gray-800');
-            
-            setTimeout(() => {
-                notification.classList.add('hidden');
-            }, 3000);
-        };
-        
-        // --- Form Submission (Add/Update) ---
-        studentForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const studentId = studentIdInput.value;
-
-            // Gather form data into an object
-            const studentData = {
-                fullName: document.getElementById('fullName').value.trim(),
-                dob: document.getElementById('dob').value,
-                birthPlace: document.getElementById('birthPlace').value.trim(),
-                address: document.getElementById('address').value.trim(),
-                phone: document.getElementById('phone').value.trim(),
-                whatsapp: document.getElementById('whatsapp').value.trim(),
-                location: document.getElementById('location').value.trim(),
-                district: document.getElementById('district').value.trim(),
-                mahallu: document.getElementById('mahallu').value.trim(),
-                atOwnHome: document.getElementById('atOwnHome').checked,
-                sslc: document.getElementById('sslc').checked,
-                batchNo: document.getElementById('batchNo').value.trim(),
-                admissionNo: document.getElementById('admissionNo').value.trim(),
-                plusTwo: document.getElementById('plusTwo').value.trim(),
-                degree: document.getElementById('degree').value.trim(),
-                darulHudaDegree: document.getElementById('darulHudaDegree').value.trim(),
-                darulHudaPg: document.getElementById('darulHudaPg').value.trim(),
-                isHudawi: document.getElementById('isHudawi').checked,
-                job: document.getElementById('job').value.trim(),
-                currentJob: document.getElementById('currentJob').value.trim(),
-                previousJob: document.getElementById('previousJob').value.trim(),
-                fatherName: document.getElementById('fatherName').value.trim(),
-                motherName: document.getElementById('motherName').value.trim(),
-                maritalStatus: document.getElementById('maritalStatus').value,
-                wifeName: document.getElementById('wifeName').value.trim(),
-                children: document.getElementById('children').value,
-                boys: document.getElementById('boys').value,
-                girls: document.getElementById('girls').value
+        document.addEventListener('DOMContentLoaded', () => {
+            const firebaseConfig = {
+                apiKey: "AIzaSyBYCiz_Ec0GeQajAKP3RrxylR1bjIr9wnQ",
+                authDomain: "nishan-8d4db.firebaseapp.com",
+                databaseURL: "https://nishan-8d4db-default-rtdb.firebaseio.com",
+                projectId: "nishan-8d4db",
+                storageBucket: "nishan-8d4db.appspot.com",
+                messagingSenderId: "856716933837",
+                appId: "1:856716933837:web:b6114e617a0c001d3f8784",
+                measurementId: "G-ZB1X291PJY"
             };
 
-            // Basic validation
-            if (!studentData.fullName || !studentData.dob || !studentData.phone) {
-                showNotification('Please fill in all required fields (*).', true);
-                return;
-            }
+            if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+            
+            const database = firebase.database();
+            const studentsRef = database.ref('students');
+            
+            let allStudents = {};
+            let allStudentIds = []; 
+            let displayLimit = 50;
+            const LOAD_INCREMENT = 50;
 
-            try {
-                if (studentId) {
-                    // Update existing student
-                    await studentsRef.child(studentId).update(studentData);
-                    showNotification('Student updated successfully!');
+            const addStudentBtn = document.getElementById('add-student-btn');
+            const logoutBtn = document.getElementById('logout-btn');
+            const searchBar = document.getElementById('search-bar');
+            const batchFilter = document.getElementById('batch-filter');
+            const studentListBody = document.getElementById('student-list-body');
+            const skeletonLoaderBody = document.getElementById('skeleton-loader-body'); // MODIFIED
+            const loadMoreContainer = document.getElementById('load-more-container'); 
+            const loadMoreBtn = document.getElementById('load-more-btn'); 
+            const noResultsDiv = document.getElementById('no-results');
+            const formView = document.getElementById('form-view');
+            const profileView = document.getElementById('profile-view');
+            const bulkUploadBtn = document.getElementById('bulk-upload-btn');
+
+            // --- MODIFIED: Generate and inject skeleton rows ---
+            const skeletonRows = Array(10).fill('').map(() => `
+                <tr>
+                    <td class="py-4 px-3"><div class="skeleton-cell" style="width: 80%;"></div></td>
+                    <td class="py-4 px-3"><div class="skeleton-cell" style="width: 40%;"></div></td>
+                    <td class="py-4 px-3"><div class="skeleton-cell" style="width: 60%;"></div></td>
+                    <td class="py-4 px-3"><div class="skeleton-cell" style="width: 70%;"></div></td>
+                </tr>
+            `).join('');
+            skeletonLoaderBody.innerHTML = skeletonRows;
+            // --- END MODIFIED ---
+
+            // (formFields array is unchanged)
+            const formFields = [
+                {legend: 'Personal Information'},
+                {label: 'Full Name *', id: 'fullName', required: true}, {label: 'Date of Birth * (YYYY-MM-DD)', id: 'dob', type: 'date', required: true},
+                {label: 'Birth Place', id: 'birthPlace'}, {label: 'Address', id: 'address', type: 'textarea'},
+                {label: 'Phone Number *', id: 'phone', type: 'tel', required: true}, {label: 'WhatsApp Number', id: 'whatsapp', type: 'tel'},
+                {label: 'Location', id: 'location'}, {label: 'District', id: 'district'}, {label: 'Mahallu Masjid', id: 'mahallu'},
+                {label: 'At Own Home', id: 'atOwnHome', type: 'checkbox'},
+                {legend: 'Educational Information'},
+                {label: 'SSLC Holder', id: 'sslc', type: 'checkbox'}, {label: 'Is Hudawi', id: 'isHudawi', type: 'checkbox'},
+                {label: 'Batch No.', id: 'batchNo'}, {label: 'Admission No.', id: 'admissionNo'},
+                {label: 'Plus Two (Subject)', id: 'plusTwo'}, 
+                {label: 'External Degrees (One per line)', id: 'externalDegrees', type: 'textarea'},
+                {label: 'Darul Huda Degrees (One per line)', id: 'dhDegrees', type: 'textarea'},
+                {label: 'External PGs (One per line)', id: 'externalPGs', type: 'textarea'},
+                {label: 'Darul Huda PGs (One per line)', id: 'dhPGs', type: 'textarea'},
+                {label: 'Other Higher Education (One per line)', id: 'otherHigherEd', type: 'textarea'},
+                {label: 'Job', id: 'job'}, {label: 'Current Job', id: 'currentJob'}, {label: 'Previous Job', id: 'previousJob'},
+                {legend: 'Family Details'},
+                {label: 'Father\'s Name', id: 'fatherName'}, 
+                {label: 'Father\'s Phone', id: 'fatherPhone', type: 'tel'},
+                {label: 'Mother\'s Name', id: 'motherName'},
+                {label: 'Marital Status', id: 'maritalStatus', type: 'select', options: ['Single', 'Married']},
+                {label: 'Wife\'s Name', id: 'wifeName', conditional: true}, {label: 'Children', id: 'children', type: 'number', conditional: true},
+                {label: 'Boys', id: 'boys', type: 'number', conditional: true}, {label: 'Girls', id: 'girls', type: 'number', conditional: true}
+            ];
+
+            // (renderStudents function is unchanged)
+            const renderStudents = (students) => {
+                skeletonLoaderBody.style.display = 'none'; // Hide skeleton
+                studentListBody.style.display = ''; // Show real data
+                
+                studentListBody.innerHTML = ''; // Clear previous results
+                
+                const studentIds = Object.keys(students);
+                
+                if (studentIds.length === 0) {
+                    noResultsDiv.classList.remove('hidden');
+                    studentListBody.parentElement.parentElement.classList.add('hidden');
                 } else {
-                    // Add new student
-                    await studentsRef.push(studentData);
-                    showNotification('Student added successfully!');
+                    noResultsDiv.classList.add('hidden');
+                    studentListBody.parentElement.parentElement.classList.remove('hidden');
+                    studentIds.forEach(id => {
+                        const student = students[id];
+                        const row = document.createElement('tr');
+                        row.dataset.id = id;
+                        row.innerHTML = `
+                            <td>${student.fullName || 'N/A'}</td>
+                            <td>${student.batchNo || 'N/A'}</td>
+                            <td>${student.phone || 'N/A'}</td>
+                            <td>${(student.location || 'N/A') + ', ' + (student.district || 'N/A')}</td>
+                        `;
+                        studentListBody.appendChild(row);
+                    });
                 }
-                window.location.hash = '#/'; // Go back to list after saving
-            } catch (error) {
-                console.error("Error saving student data:", error);
-                showNotification('Failed to save student data.', true);
-            }
-        });
-
-        // --- Render Student Cards ---
-        const renderStudents = (students) => {
-            studentList.innerHTML = '';
-            const studentIds = Object.keys(students);
-
-            if (studentIds.length === 0) {
-                noResultsDiv.classList.remove('hidden');
-                studentList.classList.add('hidden');
-                return;
-            }
+            };
             
-            noResultsDiv.classList.add('hidden');
-            studentList.classList.remove('hidden');
-            
-            studentIds.forEach(id => {
-                const student = students[id];
-                const card = document.createElement('div');
-                card.className = 'student-card bg-white rounded-xl shadow-md p-6 border border-gray-100 transform transition-transform hover:scale-105 hover:shadow-lg cursor-pointer';
-                card.style.animation = 'fadeIn 0.5s ease-out';
-                card.dataset.id = id;
+            // (applyFilters function is unchanged)
+            const applyFilters = () => {
+                const query = searchBar.value.toLowerCase().trim();
+                const selectedBatch = batchFilter.value;
                 
-                card.innerHTML = `
-                    <h3 class="text-xl font-bold text-gray-900 pointer-events-none">${student.fullName || 'N/A'}</h3>
-                    <p class="text-blue-500 font-medium pointer-events-none">${student.darulHudaPg || student.degree || 'Student'}</p>
-                    <div class="mt-4 space-y-2 text-sm text-gray-600 pointer-events-none">
-                        <p><span class="font-semibold">Place:</span> ${student.location || 'N/A'}, ${student.district || 'N/A'}</p>
-                        <p><span class="font-semibold">Phone:</span> ${student.phone || 'N/A'}</p>
-                         <p><span class="font-semibold">Mahallu:</span> ${student.mahallu || 'N/A'}</p>
-                    </div>
-                `;
-                studentList.appendChild(card);
-            });
-        };
-        
-        // --- Populate Batch Filter Dropdown ---
-        const populateBatchFilter = (students) => {
-            const batches = new Set();
-            for (const id in students) {
-                if (students[id].batchNo && students[id].batchNo.trim() !== '') {
-                    batches.add(students[id].batchNo.trim());
+                const isFiltered = query || selectedBatch;
+
+                let filteredStudentIds = allStudentIds;
+
+                if (selectedBatch) {
+                    filteredStudentIds = filteredStudentIds.filter(id => {
+                        const student = allStudents[id];
+                        return student.batchNo && String(student.batchNo).trim() === selectedBatch;
+                    });
                 }
-            }
-            const sortedBatches = Array.from(batches).sort();
-            
-            // Save current value to restore it after repopulating
-            const currentBatch = batchFilter.value;
-            
-            batchFilter.innerHTML = '<option value="">Filter by Batch</option>'; 
-            
-            sortedBatches.forEach(batch => {
-                const option = document.createElement('option');
-                option.value = batch;
-                option.textContent = `Batch: ${batch}`;
-                batchFilter.appendChild(option);
-            });
 
-            // Restore previously selected value
-            batchFilter.value = currentBatch;
-        };
-        
-        // --- Filter and Search Logic ---
-        const applyFilters = () => {
-            const query = searchBar.value.toLowerCase().trim();
-            const selectedBatch = batchFilter.value;
-            let filteredStudents = {};
-
-            for (const id in allStudents) {
-                const student = allStudents[id];
+                if (query) {
+                    filteredStudentIds = filteredStudentIds.filter(id => {
+                        const student = allStudents[id];
+                        return Object.values(student).map(String).join(' ').toLowerCase().includes(query);
+                    });
+                }
                 
-                // Batch filter check first
-                const batchMatch = !selectedBatch || (student.batchNo && student.batchNo.trim() === selectedBatch);
+                let idsToDisplay;
 
-                // If batch matches, then check search query
-                if (batchMatch) {
-                    if (query) {
-                        const searchableFields = [
-                            student.fullName,
-                            student.location, // Place
-                            student.district,
-                            student.degree,
-                            student.darulHudaPg,
-                            student.mahallu
-                        ].join(' ').toLowerCase();
-
-                        if (searchableFields.includes(query)) {
-                            filteredStudents[id] = student;
-                        }
-                    } else {
-                        // No search query, so it's a match
-                        filteredStudents[id] = student;
-                    }
-                }
-            }
-            renderStudents(filteredStudents);
-        };
-
-        // --- Event Listeners for Filters ---
-        searchBar.addEventListener('input', applyFilters);
-        batchFilter.addEventListener('change', applyFilters);
-
-        // --- Fetch and Display Students (Real-time) ---
-        studentsRef.on('value', (snapshot) => {
-            const data = snapshot.val();
-            allStudents = data || {};
-            populateBatchFilter(allStudents); // Populate/update the batch dropdown
-            applyFilters(); // Apply current filters to the new data
-        }, (error) => {
-            console.error("Firebase read failed:", error);
-            showNotification('Failed to fetch student data.', true);
-        });
-
-        // --- Show Full Profile on Card Click (Event Delegation) ---
-        studentList.addEventListener('click', (e) => {
-            const card = e.target.closest('.student-card');
-            if (card) {
-                const studentId = card.dataset.id;
-                window.location.hash = `#/profile/${studentId}`;
-            }
-        });
-        
-        // --- Page Population Logic ---
-        const showFormPage = async (studentId = null) => {
-            studentForm.reset();
-            studentIdInput.value = '';
-            marriedFields.classList.add('hidden');
-            
-            if (studentId) {
-                // Editing existing student
-                modalTitle.textContent = 'Edit Student';
-                formSubmitBtn.textContent = 'Update Student';
-                const student = allStudents[studentId];
-                if (student) {
-                    // Populate form
-                    studentIdInput.value = studentId;
-                    document.getElementById('fullName').value = student.fullName || '';
-                    document.getElementById('dob').value = student.dob || '';
-                    document.getElementById('birthPlace').value = student.birthPlace || '';
-                    document.getElementById('address').value = student.address || '';
-                    document.getElementById('phone').value = student.phone || '';
-                    document.getElementById('whatsapp').value = student.whatsapp || '';
-                    document.getElementById('location').value = student.location || '';
-                    document.getElementById('district').value = student.district || '';
-                    document.getElementById('mahallu').value = student.mahallu || '';
-                    document.getElementById('atOwnHome').checked = student.atOwnHome || false;
-                    document.getElementById('sslc').checked = student.sslc || false;
-                    document.getElementById('batchNo').value = student.batchNo || '';
-                    document.getElementById('admissionNo').value = student.admissionNo || '';
-                    document.getElementById('plusTwo').value = student.plusTwo || '';
-                    document.getElementById('degree').value = student.degree || '';
-                    document.getElementById('darulHudaDegree').value = student.darulHudaDegree || '';
-                    document.getElementById('darulHudaPg').value = student.darulHudaPg || '';
-                    document.getElementById('isHudawi').checked = student.isHudawi || false;
-                    document.getElementById('job').value = student.job || '';
-                    document.getElementById('currentJob').value = student.currentJob || '';
-                    document.getElementById('previousJob').value = student.previousJob || '';
-                    document.getElementById('fatherName').value = student.fatherName || '';
-                    document.getElementById('motherName').value = student.motherName || '';
-                    maritalStatusSelect.value = student.maritalStatus || 'Single';
+                if (isFiltered) {
+                    idsToDisplay = filteredStudentIds;
+                    loadMoreContainer.classList.add('hidden');
+                } else {
+                    idsToDisplay = filteredStudentIds.slice(0, displayLimit);
                     
-                    maritalStatusSelect.dispatchEvent(new Event('change'));
-
-                    if (student.maritalStatus === 'Married') {
-                        document.getElementById('wifeName').value = student.wifeName || '';
-                        document.getElementById('children').value = student.children || '';
-                        document.getElementById('boys').value = student.boys || '';
-                        document.getElementById('girls').value = student.girls || '';
+                    if (idsToDisplay.length < filteredStudentIds.length) {
+                        loadMoreContainer.classList.remove('hidden');
+                    } else {
+                        loadMoreContainer.classList.add('hidden');
                     }
-                } else {
-                     showNotification('Student data not found.', true);
-                     window.location.hash = '#/'; // Go back if student not found
                 }
-            } else {
-                // Adding new student
-                modalTitle.textContent = 'Add New Student';
-                formSubmitBtn.textContent = 'Save Student';
-            }
-        };
+                
+                const studentsToRender = {};
+                idsToDisplay.forEach(id => {
+                    studentsToRender[id] = allStudents[id];
+                });
 
-        // --- Delete Confirmation Modal ---
-        const deleteConfirmModal = document.getElementById('delete-confirm-modal');
-        const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
-        const cancelDeleteBtn = document.getElementById('cancel-delete-btn');
-        let studentIdToDelete = null;
+                renderStudents(studentsToRender);
+            };
+            
+            // (Event listeners are unchanged)
+            searchBar.addEventListener('input', () => {
+                displayLimit = 100; 
+                applyFilters();
+            });
+            batchFilter.addEventListener('change', () => {
+                displayLimit = 100; 
+                applyFilters();
+            });
+            loadMoreBtn.addEventListener('click', () => {
+                displayLimit += LOAD_INCREMENT; 
+                applyFilters();
+            });
 
-        const showDeleteConfirmation = (studentId) => {
-            studentIdToDelete = studentId;
-            deleteConfirmModal.classList.remove('hidden');
-        };
-
-        const hideDeleteConfirmation = () => {
-            studentIdToDelete = null;
-            deleteConfirmModal.classList.add('hidden');
-        };
-        
-        cancelDeleteBtn.addEventListener('click', hideDeleteConfirmation);
-
-        confirmDeleteBtn.addEventListener('click', async () => {
-            if (studentIdToDelete) {
-                try {
-                    await studentsRef.child(studentIdToDelete).remove();
-                    showNotification('Student deleted successfully.');
-                    window.location.hash = '#/'; // Go back to list after delete
-                } catch (error) {
-                    console.error("Error deleting student:", error);
-                    showNotification('Failed to delete student.', true);
-                } finally {
-                    hideDeleteConfirmation();
-                }
-            }
-        });
-
-        // --- Show Student Profile Details ---
-        const showProfilePage = (studentId) => {
-            const student = allStudents[studentId];
-            if (!student) {
-                window.location.hash = '#/';
-                return;
+            // (populateBatchFilter is unchanged)
+            const populateBatchFilter = (students) => {
+                const batches = new Set(Object.values(students).map(s => s.batchNo).filter(Boolean));
+                const sortedBatches = Array.from(batches).sort();
+                const currentBatch = batchFilter.value;
+                batchFilter.innerHTML = '<option value="">Filter by Batch</option>';
+                sortedBatches.forEach(batch => {
+                    batchFilter.innerHTML += `<option value="${batch}">Batch: ${batch}</option>`;
+                });
+                batchFilter.value = currentBatch;
             };
 
-            const detailItem = (label, value, isToggle = false) => {
-                let displayValue = value;
-                if (isToggle) {
-                    displayValue = value ? 'Yes' : 'No';
+            // (Main data fetch is unchanged)
+            studentsRef.on('value', (snapshot) => {
+                allStudents = snapshot.val() || {};
+                
+                allStudentIds = Object.keys(allStudents).sort((a, b) => {
+                    const nameA = (allStudents[a].fullName || '').toLowerCase();
+                    const nameB = (allStudents[b].fullName || '').toLowerCase();
+                    return nameA.localeCompare(nameB);
+                });
+                
+                populateBatchFilter(allStudents);
+                router(); 
+            }, (error) => console.error("Firebase read failed:", error));
+
+            // (Click listener is unchanged)
+            document.getElementById('student-list-container').addEventListener('click', (e) => {
+                const row = e.target.closest('tr');
+                if (row && row.dataset.id) {
+                    window.location.hash = `#/profile/${row.dataset.id}`;
                 }
-                return `
-                    <div class="py-2 sm:grid sm:grid-cols-3 sm:gap-4">
-                        <dt class="text-sm font-medium text-gray-500">${label}</dt>
-                        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">${displayValue || 'N/A'}</dd>
+            });
+
+            // (showFormPage is unchanged, except for one line)
+            const showFormPage = (studentId = null) => {
+                const student = studentId ? allStudents[studentId] : {};
+                formView.innerHTML = `
+                    <div class="bg-white p-8 border border-gray-200 rounded-lg">
+                        <div class="flex items-center justify-between pb-4 border-b mb-6">
+                            <h2 class="text-2xl font-bold">${studentId ? 'Edit Student' : 'Add New Student'}</h2>
+                            <button id="cancel-form-btn" class="text-gray-600 hover:text-gray-900 font-semibold">CANCEL</button>
+                        </div>
+                        <form id="student-form" class="space-y-6"></form>
+                        <div class="mt-8 pt-4 border-t">
+                             <button type="submit" form="student-form" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-md">
+                                 ${studentId ? 'Update Student' : 'Save Student'}
+                             </button>
+                        </div>
                     </div>`;
+                
+                const form = document.getElementById('student-form');
+                let formHTML = '';
+                formFields.forEach((f, index) => {
+                    if (f.legend) {
+                        if (index > 0) formHTML += `</fieldset>`;
+                        formHTML += `<fieldset class="space-y-4 pt-4"><legend class="text-lg font-semibold text-gray-800 border-b pb-2 mb-4 w-full">${f.legend}</legend>`;
+                    } else {
+                        const wrapperClass = f.conditional ? 'hidden' : '';
+                        let fieldContent = `<label for="${f.id}" class="block text-sm font-medium text-gray-700">${f.label}</label>`;
+                        if (f.type === 'textarea') fieldContent += `<textarea id="${f.id}" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2" rows="3"></textarea>`;
+                        else if (f.type === 'select') fieldContent += `<select id="${f.id}" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2">${f.options.map(o => `<option>${o}</option>`).join('')}</select>`;
+                        else if (f.type === 'checkbox') fieldContent = `<div class="flex items-center gap-3 pt-2"><input type="checkbox" id="${f.id}" class="h-5 w-5 rounded border-gray-300 text-blue-600"><label for="${f.id}" class="text-sm font-medium text-gray-700">${f.label}</label></div>`;
+                        else fieldContent += `<input type="${f.type || 'text'}" id="${f.id}" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2">`;
+                        formHTML += `<div id="${f.id}-wrapper" class="${wrapperClass}">${fieldContent}</div>`;
+                    }
+                });
+                formHTML += `</fieldset>`;
+                form.innerHTML = formHTML;
+
+                const maritalStatusSelect = document.getElementById('maritalStatus');
+                const toggleMarriedFields = () => {
+                    const show = maritalStatusSelect.value === 'Married';
+                    ['wifeName', 'children', 'boys', 'girls'].forEach(id => {
+                        document.getElementById(`${id}-wrapper`).classList.toggle('hidden', !show);
+                    });
+                };
+                maritalStatusSelect.addEventListener('change', toggleMarriedFields);
+
+                formFields.forEach(f => {
+                    if (!f.legend && student[f.id] !== undefined) {
+                        const el = document.getElementById(f.id);
+                        if(el.type === 'checkbox') el.checked = student[f.id];
+                        else el.value = student[f.id];
+                    }
+                });
+                toggleMarriedFields();
+
+                document.getElementById('cancel-form-btn').onclick = () => { window.location.hash = '#/'; };
+                form.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const studentData = {};
+                    formFields.forEach(f => {
+                        if (f.id) {
+                            const el = document.getElementById(f.id);
+                            studentData[f.id] = el.type === 'checkbox' ? el.checked : el.value;
+                        }
+                    });
+                    if (!studentData.fullName || !studentData.dob || !studentData.phone) {
+                        alert('Please fill all required fields (*).'); return;
+                    }
+                    try {
+                        let studentIdToUpdate = studentId; // MODIFIED
+                        if (studentId) {
+                            await studentsRef.child(studentId).update(studentData);
+                        } else {
+                            const newStudentRef = await studentsRef.push(studentData); // MODIFIED
+                            studentIdToUpdate = newStudentRef.key; // MODIFIED
+                        }
+                        window.location.hash = `#/profile/${studentIdToUpdate}`; // MODIFIED
+                    } catch(err) { console.error("Save failed:", err); }
+                });
             };
 
-            profileContent.innerHTML = `
-                <div class="divide-y divide-gray-200">
-                    <h3 class="text-lg font-semibold text-gray-700 pb-2 mb-2">Personal Information</h3>
-                    <dl>
-                        ${detailItem('Full Name', student.fullName)}
-                        ${detailItem('Date of Birth', student.dob)}
-                        ${detailItem('Birth Place', student.birthPlace)}
-                        ${detailItem('Address', student.address)}
-                        ${detailItem('Phone Number', student.phone)}
-                        ${detailItem('WhatsApp Number', student.whatsapp)}
-                        ${detailItem('Location', student.location)}
-                        ${detailItem('District', student.district)}
-                        ${detailItem('Mahallu Masjid', student.mahallu)}
-                        ${detailItem('At Own Home', student.atOwnHome, true)}
-                    </dl>
-                </div>
-                <div class="divide-y divide-gray-200">
-                    <h3 class="text-lg font-semibold text-gray-700 pt-4 pb-2 mb-2">Educational Information</h3>
-                    <dl>
-                        ${detailItem('SSLC Holder', student.sslc, true)}
-                        ${detailItem('Is Hudawi', student.isHudawi, true)}
-                        ${detailItem('Batch No.', student.batchNo)}
-                        ${detailItem('Admission No.', student.admissionNo)}
-                        ${detailItem('Plus Two (Subject)', student.plusTwo)}
-                        ${detailItem('Degree (Subject)', student.degree)}
-                        ${detailItem('Darul Huda Degree Dept.', student.darulHudaDegree)}
-                        ${detailItem('Darul Huda PG Dept.', student.darulHudaPg)}
-                        ${detailItem('Job', student.job)}
-                        ${detailItem('Current Job', student.currentJob)}
-                        ${detailItem('Previous Job', student.previousJob)}
-                    </dl>
-                </div>
-                 <div class="divide-y divide-gray-200">
-                    <h3 class="text-lg font-semibold text-gray-700 pt-4 pb-2 mb-2">Family Details</h3>
-                    <dl>
-                        ${detailItem('Father\'s Name', student.fatherName)}
-                        ${detailItem('Mother\'s Name', student.motherName)}
-                        ${detailItem('Marital Status', student.maritalStatus)}
-                        ${student.maritalStatus === 'Married' ? `
-                            ${detailItem('Wife\'s Name', student.wifeName)}
-                            ${detailItem('Children', student.children)}
-                            ${detailItem('Boys', student.boys)}
-                            ${detailItem('Girls', student.girls)}
-                        ` : ''}
-                    </dl>
-                </div>
-            `;
+            // (showProfilePage is unchanged)
+            const showProfilePage = (studentId) => {
+                const student = allStudents[studentId];
+                if (!student) { window.location.hash = '#/'; return; }
+                
+                const detailItem = (label, value) => {
+                    if (!value && typeof value !== 'boolean') return '';
+                    value = (typeof value === 'boolean') ? (value ? 'Yes' : 'No') : value;
+                    return `<div class="py-3 sm:grid sm:grid-cols-3 sm:gap-4 print-item"><dt class="text-sm font-medium text-gray-500">${label}</dt><dd class="mt-1 text-base text-gray-900 sm:mt-0 sm:col-span-2">${value}</dd></div>`;
+                };
+
+                const detailListItem = (label, value) => {
+                    if (!value) return '';
+                    const items = value.split('\n').map(s => s.trim()).filter(Boolean); 
+                    if (items.length === 0) return '';
+                    const listHTML = '<ul class="list-disc ml-5 space-y-1">' + items.map(item => `<li>${item}</li>`).join('') + '</ul>';
+                    return `<div class="py-3 sm:grid sm:grid-cols-3 sm:gap-4 print-list-item"><dt class="text-sm font-medium text-gray-500">${label}</dt><dd class="mt-1 text-base text-gray-900 sm:mt-0 sm:col-span-2">${listHTML}</dd></div>`;
+                };
+
+                const firstDhPg = student.dhPGs ? student.dhPGs.split('\n')[0] : null;
+                const firstDhDegree = student.dhDegrees ? student.dhDegrees.split('\n')[0] : null;
+                const subtitle = firstDhPg || firstDhDegree || 'Alumni';
+
+                const hudawiBadge = student.isHudawi ? '<span class="hudawi-badge">HUDAWI</span>' : '';
+                
+                profileView.innerHTML = `
+                    <div class="no-print pb-6 mb-6 border-b flex justify-between items-center">
+                        <button id="back-to-list-btn" class="text-blue-600 hover:underline font-semibold">&larr; Back to List</button>
+                        <div class="admin-only space-x-3">
+                            <button id="profile-print-btn" class="bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-md">Print</button>
+                            <button id="profile-edit-btn" class="bg-blue-600 text-white font-semibold py-2 px-4 rounded-md">Edit</button>
+                            <button id="profile-delete-btn" class="bg-red-600 text-white font-semibold py-2 px-4 rounded-md">Delete</button>
+                        </div>
+                    </div>
+                    <div id="profile-content">
+                        <div class="flex items-center"><h2 class="text-3xl font-bold text-gray-900">${student.fullName}</h2>${hudawiBadge}</div>
+                        <p class="text-lg text-blue-600">${subtitle}</p>
+                        <div class="mt-8 space-y-8">
+                            <div><h3 class="text-xl font-semibold border-b pb-2 mb-3">Personal Information</h3><dl class="divide-y divide-gray-200">${detailItem('Date of Birth', student.dob)}${detailItem('Birth Place', student.birthPlace)}${detailItem('Phone', student.phone)}${detailItem('WhatsApp', student.whatsapp)}${detailItem('Address', student.address)}${detailItem('Location', student.location)}${detailItem('District', student.district)}${detailItem('Mahallu Masjid', student.mahallu)}${detailItem('At Own Home', student.atOwnHome)}</dl></div>
+                            <div><h3 class="text-xl font-semibold border-b pb-2 mb-3">Educational Details</h3><dl class="divide-y divide-gray-200">${detailItem('SSLC Holder', student.sslc)}${detailItem('Is Hudawi', student.isHudawi)}${detailItem('Batch No.', student.batchNo)}${detailItem('Admission No.', student.admissionNo)}${detailItem('Plus Two', student.plusTwo)}${detailListItem('External Degrees', student.externalDegrees)}${detailListItem('Darul Huda Degrees', student.dhDegrees)}${detailListItem('External PGs', student.externalPGs)}${detailListItem('Darul Huda PGs', student.dhPGs)}${detailListItem('Other Higher Education', student.otherHigherEd)}${detailItem('Job', student.job)}${detailItem('Current Job', student.currentJob)}${detailItem('Previous Job', student.previousJob)}</dl></div>
+                            <div><h3 class="text-xl font-semibold border-b pb-2 mb-3">Family Details</h3><dl class="divide-y divide-gray-200">${detailItem('Father\'s Name', student.fatherName)}${detailItem('Father\'s Phone', student.fatherPhone)}${detailItem('Mother\'s Name', student.motherName)}${detailItem('Marital Status', student.maritalStatus)}${student.maritalStatus === 'Married' ? `${detailItem('Wife\'s Name', student.wifeName)}${detailItem('Total Children', student.children)}${detailItem('Boys', student.boys)}${detailItem('Girls', student.girls)}` : ''}</dl></div>
+                        </div>
+                    </div>`;
+
+                document.getElementById('back-to-list-btn').onclick = () => { window.location.hash = '#/'; };
+                if (sessionStorage.getItem('isAdmin') === 'true') {
+                    document.getElementById('profile-print-btn').onclick = () => window.print();
+                    document.getElementById('profile-edit-btn').onclick = () => { window.location.hash = `#/edit/${studentId}`; };
+                    document.getElementById('profile-delete-btn').onclick = () => showDeleteConfirmation(studentId);
+                }
+            };
             
-            profileActions.innerHTML = `
-                <button id="profile-edit-btn" class="text-sm font-semibold bg-blue-500 text-white hover:bg-blue-600 px-4 py-2 rounded-lg">Edit</button>
-                <button id="profile-delete-btn" class="text-sm font-semibold bg-red-500 text-white hover:bg-red-600 px-4 py-2 rounded-lg">Delete</button>
-            `;
+            // (Delete confirmation functions are unchanged)
+            const deleteConfirmModal = document.getElementById('delete-confirm-modal');
+            const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
+            const cancelDeleteBtn = document.getElementById('cancel-delete-btn');
+            let studentIdToDelete = null;
+
+            const showDeleteConfirmation = (studentId) => {
+                studentIdToDelete = studentId;
+                deleteConfirmModal.classList.remove('hidden');
+            };
+            const hideDeleteConfirmation = () => {
+                studentIdToDelete = null;
+                deleteConfirmModal.classList.add('hidden');
+            };
+            cancelDeleteBtn.addEventListener('click', hideDeleteConfirmation);
+            confirmDeleteBtn.addEventListener('click', async () => {
+                if (studentIdToDelete) {
+                    try {
+                        await studentsRef.child(studentIdToDelete).remove();
+                        window.location.hash = '#/';
+                    } catch (error) { console.error("Error deleting student:", error); } 
+                    finally { hideDeleteConfirmation(); }
+                }
+            });
             
-            document.getElementById('profile-edit-btn').onclick = () => { window.location.hash = `#/edit/${studentId}`; };
-            document.getElementById('profile-delete-btn').onclick = () => showDeleteConfirmation(studentId);
-        };
+            // (showBulkUploadPage function is unchanged)
+            const showBulkUploadPage = () => {
+                 document.getElementById('back-to-list-btn-from-bulk').onclick = () => { window.location.hash = '#/'; };
+                 const downloadTemplateBtn = document.getElementById('download-template-btn');
+                 const fileInput = document.getElementById('excel-file-input');
+                 const uploadDataBtn = document.getElementById('upload-data-btn');
+                 let selectedFile;
 
-        // --- Simple Client-Side Router ---
-        const router = () => {
-            // Reset scroll position to the top for a page-like feel
-            window.scrollTo(0, 0);
+                 downloadTemplateBtn.onclick = () => {
+                      const headers = formFields.filter(f => f.id).map(f => f.id);
+                      const ws = XLSX.utils.aoa_to_sheet([headers]);
+                      const wb = XLSX.utils.book_new();
+                      XLSX.utils.book_append_sheet(wb, ws, "Students");
+                      XLSX.writeFile(wb, "Alumni_Upload_Template.xlsx");
+                 };
 
-             // Check admin session first
-            const isAdmin = sessionStorage.getItem('isAdmin') === 'true';
-            // Reset only the view-specific classes, preserving others
-            document.body.classList.remove('show-login', 'show-list', 'show-form', 'show-profile');
+                 fileInput.onchange = (e) => {
+                      selectedFile = e.target.files[0];
+                      uploadDataBtn.disabled = !selectedFile;
+                 };
 
-            if (!isAdmin) {
-                document.body.classList.remove('admin-logged-in');
-                document.body.classList.add('show-login');
-                return;
-            }
+                 uploadDataBtn.onclick = () => {
+                      if (!selectedFile) return;
+                      const reader = new FileReader();
+                      reader.onload = async (event) => {
+                           try {
+                                const data = new Uint8Array(event.target.result);
+                                const workbook = XLSX.read(data, {type: 'array', cellDates: true});
+                                const sheetName = workbook.SheetNames[0];
+                                const worksheet = workbook.Sheets[sheetName];
+                                const json = XLSX.utils.sheet_to_json(worksheet);
 
-            document.body.classList.add('admin-logged-in');
+                                if (json.length === 0) {
+                                    alert("File is empty or format is incorrect.");
+                                    return;
+                                }
+                                
+                                const updates = {};
+                                const arrayFields = ['externalDegrees', 'dhDegrees', 'externalPGs', 'dhPGs', 'otherHigherEd'];
 
-            const path = window.location.hash.slice(2) || '/'; // Remove '#/'
-            const parts = path.split('/');
-            const view = parts[0] || 'list';
-            const id = parts[1] || null;
+                                json.forEach(student => {
+                                    arrayFields.forEach(field => {
+                                        if (student[field] && typeof student[field] === 'string') {
+                                            student[field] = student[field].split('|').map(s => s.trim()).filter(Boolean).join('\n');
+                                        }
+                                    });
 
-            switch(view) {
-                case 'new':
-                    document.body.classList.add('show-form');
-                    showFormPage();
-                    break;
-                case 'edit':
-                    document.body.classList.add('show-form');
-                    showFormPage(id);
-                    break;
-                case 'profile':
-                    document.body.classList.add('show-profile');
-                    showProfilePage(id);
-                    break;
-                default:
-                    document.body.classList.add('show-list');
-                    break;
-            }
-        };
+                                    for (const key in student) {
+                                        if (String(student[key]).toUpperCase() === 'TRUE') student[key] = true;
+                                        if (String(student[key]).toUpperCase() === 'FALSE') student[key] = false;
+                                    }
+                                    
+                                    const newStudentKey = studentsRef.push().key;
+                                    updates[`/students/${newStudentKey}`] = student;
+                                });
 
-        // --- Admin Login & Session Logic ---
-        const handleLogin = () => {
-            const enteredCode = loginCodeInput.value;
-            if (enteredCode === ADMIN_CODE) {
-                sessionStorage.setItem('isAdmin', 'true');
-                loginError.textContent = '';
-                loginCodeInput.value = '';
-                window.location.hash = '#/'; // Set hash for correct URL
-                router(); // Manually call router to ensure UI update
-            } else {
-                loginError.textContent = 'Incorrect code. Please try again.';
-            }
-        };
+                                await database.ref().update(updates);
+                                alert(`${json.length} records uploaded successfully!`);
+                                window.location.hash = '#/';
 
-        const handleLogout = () => {
-            sessionStorage.removeItem('isAdmin');
-            window.location.hash = '#/'; // Set hash for correct URL
-            router(); // Manually call router to ensure UI update
-        };
+                           } catch (error) {
+                                console.error("Error processing file:", error);
+                                alert("Failed to process the file. Make sure it's a valid Excel file and the format is correct.");
+                           }
+                      };
+                      reader.readAsArrayBuffer(selectedFile);
+                 };
+            };
 
-        loginForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            handleLogin();
+            // (Router function is unchanged)
+            const router = () => {
+                window.scrollTo(0, 0);
+                const isAdmin = sessionStorage.getItem('isAdmin') === 'true';
+                document.body.classList.toggle('admin-logged-in', isAdmin);
+                
+                document.body.classList.remove('show-list', 'show-form', 'show-profile', 'show-bulk-upload');
+                const [view, id] = (window.location.hash.slice(2) || '/').split('/');
+                
+                loadMoreContainer.classList.add('hidden');
+                noResultsDiv.classList.add('hidden');
+
+                switch(view) {
+                    case 'new':
+                    case 'edit':
+                        if (isAdmin) {
+                            document.body.classList.add('show-form');
+                            showFormPage(id);
+                        } else { window.location.hash = '#/'; }
+                        break;
+                    case 'profile':
+                        document.body.classList.add('show-profile');
+                        showProfilePage(id);
+                        break;
+                    case 'bulk-upload':
+                        if(isAdmin) {
+                            document.body.classList.add('show-bulk-upload');
+                            showBulkUploadPage();
+                        } else { window.location.hash = '#/'}
+                        break;
+                    default:
+                        document.body.classList.add('show-list');
+                        displayLimit = 100; 
+                        applyFilters(); 
+                        break;
+                }
+            };
+
+            // (Button listeners are unchanged)
+            logoutBtn.addEventListener('click', () => {
+                sessionStorage.removeItem('isAdmin');
+                window.location.hash = '#/';
+                router();
+            });
+            addStudentBtn.addEventListener('click', () => { window.location.hash = '#/new'; });
+            bulkUploadBtn.addEventListener('click', () => { window.location.hash = '#/bulk-upload'; });
+
+            window.addEventListener('hashchange', router);
+            
+            // Initial load is now handled by the .on('value') callback
         });
-
-        logoutBtn.addEventListener('click', handleLogout);
-
-        // --- Initial Load & Route Handling ---
-        window.addEventListener('hashchange', router);
-        router(); // Call router on initial page load
-
-    }); // End of DOMContentLoaded
     </script>
-
 </body>
 </html>
-
