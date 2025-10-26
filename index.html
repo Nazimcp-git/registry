@@ -59,6 +59,17 @@
             margin-left: 12px;
             vertical-align: middle;
         }
+        .hudawi-badge-s {
+            display: inline-block;
+            background-color: #ffffff;
+            color: rgb(0, 0, 0);
+            padding: 2px 6px;
+            font-size: 0.5rem;
+            font-weight: 600;
+            border-radius: 9999px;
+            margin-left: 12px;
+            vertical-align: middle;
+        }
 
         /* --- NEW: Skeleton Loader Styles --- */
         @keyframes pulse {
@@ -372,12 +383,15 @@
                 } else {
                     noResultsDiv.classList.add('hidden');
                     studentListBody.parentElement.parentElement.classList.remove('hidden');
+                    
                     studentIds.forEach(id => {
                         const student = students[id];
+                        const hudawiBadge = student.isHudawi ? '<span class="hudawi-badge-s">HUDAWI</span>' : '';
                         const row = document.createElement('tr');
                         row.dataset.id = id;
+                        
                         row.innerHTML = `
-                            <td>${student.fullName || 'N/A'}</td>
+                            <td>${student.fullName || 'N/A'} ${hudawiBadge}</td>
                             <td>${student.batchNo || 'N/A'}</td>
                             <td>${student.phone || 'N/A'}</td>
                             <td>${(student.location || 'N/A') + ', ' + (student.district || 'N/A')}</td>
