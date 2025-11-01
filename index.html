@@ -3,29 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Alumni Student Register</title>
+    <title>Alumni Student Portal</title>
     
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     
+    <!-- Google Font -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     
+    <!-- SheetJS (for Excel Upload) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+    <!-- 
+    ===============================================================
+    Firebase 8.10.0 SDKs
+    ===============================================================
+    -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <!-- 
+    ===============================================================
+    -->
+
     <style>
+        /* All CSS styles */
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #ffffff;
+            background-color: #f3f4f6;
         }
         .page-view { display: none; }
-        body.show-list #list-view,
-        body.show-form #form-view,
+        body.show-loading #loading-view,
+        body.show-login #login-view,
+        body.show-admin-dashboard #admin-dashboard-view,
+        body.show-student-dashboard #student-dashboard-view,
         body.show-profile #profile-view,
-        body.show-bulk-upload #bulk-upload-view { display: block; }
-        
-        .admin-only { display: none; }
-        body.admin-logged-in .admin-only { display: inline-flex; }
-
+        body.show-form #form-view,
+        body.show-bulk-upload #bulk-upload-view,
+        body.show-report #report-view,
+        body.show-export #export-view { 
+            display: block; 
+        }
         .student-table {
             border-collapse: collapse;
             width: 100%;
@@ -35,19 +52,21 @@
             border: 1px solid #e2e8f0;
             padding: 12px 15px;
             text-align: left;
+            vertical-align: middle;
         }
         .student-table thead th {
             background-color: #f8fafc;
             font-weight: 600;
         }
         .student-table tbody tr {
-            cursor: pointer;
             transition: background-color 0.2s ease-in-out;
         }
-        .student-table tbody tr:hover {
+        .student-table tbody tr:not(.no-hover):hover {
             background-color: #f1f5f9;
         }
-        
+        .student-table tbody tr.clickable {
+             cursor: pointer;
+        }
         .hudawi-badge {
             display: inline-block;
             background-color: #16a34a;
@@ -70,8 +89,15 @@
             margin-left: 12px;
             vertical-align: middle;
         }
-
-        /* --- NEW: Skeleton Loader Styles --- */
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+        }
+        .status-dot-pending { background-color: #ef4444; }
+        .status-dot-complete { background-color: #22c55e; }
         @keyframes pulse {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.5; }
@@ -82,164 +108,110 @@
             border-radius: 0.25rem;
             animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
         }
-        /* --- END NEW --- */
         
-        /* --- MODIFIED: Heavily improved Print Styles --- */
+        /* Print Styles */
         @media print {
-            body {
-                background-color: #fff !important;
-            }
-            .no-print {
-                display: none !important;
-            }
-            body > * {
-                display: none !important;
-            }
+            body { background-color: #fff !important; }
+            .no-print { display: none !important; }
+            body > * { display: none !important; }
             .max-w-7xl {
-                 display: block !important;
-                 padding: 0 !important;
-                 margin: 0 !important;
-                 max-width: 100% !important;
-                 border: none !important;
-                 box-shadow: none !important;
+                display: block !important; padding: 0 !important; margin: 0 !important;
+                max-width: 100% !important; border: none !important; box-shadow: none !important;
             }
-            .max-w-7xl > * {
-                 display: none !important;
-            }
+            .max-w-7xl > * { display: none !important; }
             #profile-view {
-                display: block !important;
-                margin: 0 !important;
-                padding: 0.75in !important; /* Slightly smaller margin */
-                border: none !important;
-                box-shadow: none !important;
-                max-width: 100% !important;
+                display: block !important; margin: 0 !important; padding: 0.75in !important;
+                border: none !important; box-shadow: none !important; max-width: 100% !important;
             }
             #profile-content, #profile-content * {
-                display: block !important;
-                color: #000 !important;
-                background-color: transparent !important;
-                box-shadow: none !important;
-                border-color: #000 !important;
+                display: block !important; color: #000 !important; background-color: transparent !important;
+                box-shadow: none !important; border-color: #000 !important;
             }
-            #profile-content h2 {
-                font-size: 24pt !important;
-                font-weight: bold;
-                margin-bottom: 0px !important;
-            }
-            #profile-content .text-lg { /* Profile subtitle */
-                font-size: 14pt !important;
-                margin-bottom: 2rem !important;
-                color: #333 !important;
-            }
+            #profile-content h2 { font-size: 24pt !important; font-weight: bold; margin-bottom: 0px !important; }
+            #profile-content .text-lg { font-size: 14pt !important; margin-bottom: 2rem !important; color: #333 !important; }
             #profile-content h3 {
-                font-size: 16pt !important;
-                font-weight: bold;
-                border-bottom: 2px solid #000 !important;
-                margin-top: 1.5rem !important;
-                padding-bottom: 4px !important;
-                page-break-after: avoid;
+                font-size: 16pt !important; font-weight: bold; border-bottom: 2px solid #000 !important;
+                margin-top: 1.5rem !important; padding-bottom: 4px !important; page-break-after: avoid;
             }
-            #profile-content > div:not(:first-child) h3 {
-                 page-break-before: auto;
-            }
+            #profile-content > div:not(:first-child) h3 { page-break-before: auto; }
             .hudawi-badge {
-                border: 1px solid #000 !important;
-                padding: 2px 8px !important;
-                font-size: 10pt !important;
-                font-weight: bold !important;
-                color: #000 !important;
-                vertical-align: baseline;
-                margin-left: 1rem;
+                border: 1px solid #000 !important; padding: 2px 8px !important; font-size: 10pt !important;
+                font-weight: bold !important; color: #000 !important; vertical-align: baseline; margin-left: 1rem;
             }
-
-            /* NEW Grid layout for DL */
             dl {
-                border-top: 1px solid #ccc;
-                display: grid;
-                grid-template-columns: 1fr 1fr; /* Two columns */
-                gap: 0 1.5rem; /* Gap between columns */
+                border-top: 1px solid #ccc; display: grid;
+                grid-template-columns: 1fr 1fr; gap: 0 1.5rem;
             }
-            dl > div { /* This targets the detailItem div */
-                page-break-inside: avoid;
-                padding: 8px 0 !important;
-                border-bottom: 1px solid #ccc;
-                /* By default, span one column */
-            }
-            dl > div.print-list-item {
-                grid-column: 1 / -1; /* Make list items span full width */
-            }
-            dl > div:not(.print-list-item) {
-                display: grid;
-                grid-template-columns: 140px 1fr; /* Label width + value */
-                gap: 0.5rem;
-            }
-            dl > div dt {
-                font-weight: bold !important;
-                font-size: 11pt;
-                padding-top: 0;
-            }
-            dl > div dd {
-                font-size: 11pt;
-                padding-left: 0 !important;
-                margin-left: 0 !important;
-            }
-            dl > div dd ul {
-                padding-left: 1rem !important;
-                margin-top: 4px !important;
-            }
-            dl > div dd li {
-                list-style-type: disc !important;
-                margin-left: 1rem !important;
-            }
+            dl > div { page-break-inside: avoid; padding: 8px 0 !important; border-bottom: 1px solid #ccc; }
+            dl > div.print-list-item { grid-column: 1 / -1; }
+            dl > div:not(.print-list-item) { display: grid; grid-template-columns: 140px 1fr; gap: 0.5rem; }
+            dl > div dt { font-weight: bold !important; font-size: 11pt; padding-top: 0; }
+            dl > div dd { font-size: 11pt; padding-left: 0 !important; margin-left: 0 !important; }
+            dl > div dd ul { padding-left: 1rem !important; margin-top: 4px !important; }
+            dl > div dd li { list-style-type: disc !important; margin-left: 1rem !important; }
         }
     </style>
 </head>
-<body class="antialiased text-gray-800">
+<body class="antialiased text-gray-800 show-loading">
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-
-        <header class="flex items-center justify-between mb-8 pb-4 border-b no-print">
+        <header id="app-header" class="flex items-center justify-between mb-8 pb-4 border-b no-print">
             <div>
                 <h1 class="text-3xl font-bold text-gray-900">Students Register</h1>
                 <p class="text-gray-500 mt-1">Darunnajath Islamic Complex, Vallappuzha</p>
             </div>
-            <div class="flex items-center space-x-4">
-                <button id="add-student-btn" class="admin-only bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-5 rounded-md shadow-sm">
-                    Add Student
-                </button>
-                <button id="bulk-upload-btn" class="admin-only bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-5 rounded-md shadow-sm">
-                    Bulk Upload
-                </button>
-                <button id="logout-btn" class="admin-only bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 px-5 rounded-md">
-                    Logout
-                </button>
-            </div>
+            <div id="header-controls"></div>
         </header>
 
-        <div id="list-view" class="page-view">
+        <div id="loading-view" class="page-view text-center py-20">
+            <h2 class="text-xl font-semibold text-gray-600">Connecting...</h2>
+            <p class="text-gray-500">Loading student portal.</p>
+        </div>
+
+        <div id="login-view" class="page-view">
+            <div class="max-w-md mx-auto bg-white p-8 border border-gray-200 rounded-lg shadow-sm">
+                <h2 class="text-2xl font-bold text-center mb-6">Portal Login</h2>
+                <form id="login-form" class="space-y-4">
+                    <div>
+                        <label for="login-input" class="block text-sm font-medium text-gray-700">Admission Number (or Admin Password)</label>
+                        <input type="text" id="login-input" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2">
+                    </div>
+                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-md">
+                        Login
+                    </button>
+                    <p id="login-error" class="text-sm text-red-600 text-center"></p>
+                </form>
+            </div>
+        </div>
+
+        <div id="admin-dashboard-view" class="page-view">
             <div class="flex flex-col md:flex-row items-center gap-4 mb-6 no-print">
                 <input type="text" id="search-bar" placeholder="Search by any detail..." class="block w-full border border-gray-300 rounded-md p-3 shadow-sm focus:ring-2 focus:ring-blue-500">
                 <select id="batch-filter" class="block w-full md:w-56 border border-gray-300 rounded-md p-3 shadow-sm focus:ring-2 focus:ring-blue-500">
                     <option value="">Filter by Batch</option>
+                </select>
+                <select id="status-filter" class="block w-full md:w-56 border border-gray-300 rounded-md p-3 shadow-sm focus:ring-2 focus:ring-blue-500">
+                    <option value="">Filter by Status</option>
+                    <option value="complete">Complete</option>
+                    <option value="pending">Pending</option>
                 </select>
             </div>
             <main id="student-list-container" class="bg-white border border-gray-200 rounded-lg overflow-x-auto">
                 <table class="student-table w-full">
                     <thead>
                         <tr>
+                            <th>Status</th>
                             <th>Name</th>
+                            <th>Admission No.</th>
                             <th>Batch</th>
                             <th>Phone</th>
                             <th>Location</th>
                         </tr>
                     </thead>
                     <tbody id="student-list-body" style="display: none;"></tbody>
-                    
-                    <tbody id="skeleton-loader-body">
-                        </tbody>
-                    </table>
+                    <tbody id="skeleton-loader-body"></tbody>
+                </table>
             </main>
-
             <div id="load-more-container" class="text-center py-6 no-print hidden">
                 <button id="load-more-btn" class="bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold py-2 px-6 rounded-md shadow-sm">
                     Load More Students
@@ -247,18 +219,24 @@
             </div>
             <div id="no-results" class="hidden text-center py-16">
                 <h3 class="text-xl font-semibold text-gray-500">No students found.</h3>
-                <p class="text-gray-400">Try adjusting your search or add a new student.</p>
+                <p class="text-gray-400">Try adjusting your search filters.</p>
             </div>
         </div>
-        
+
+        <div id="student-dashboard-view" class="page-view"></div>
+
         <div id="bulk-upload-view" class="page-view">
             <div class="bg-white p-8 border border-gray-200 rounded-lg">
                 <div class="flex items-center justify-between pb-4 border-b mb-6">
-                    <h2 class="text-2xl font-bold">Bulk Upload Students</h2>
-                     <button id="back-to-list-btn-from-bulk" class="text-gray-600 hover:text-gray-900 font-semibold">CANCEL</button>
+                    <h2 class="text-2xl font-bold">Bulk Upload New Students</h2>
+                    <button id="back-to-list-btn-from-bulk" class="text-gray-600 hover:text-gray-900 font-semibold">CANCEL</button>
                 </div>
                 <div class="space-y-4">
-                    <p class="text-gray-600">Upload multiple students at once using an Excel file. Dates should be in <strong>YYYY-MM-DD</strong> format. Checkboxes should be <strong>TRUE</strong> or <strong>FALSE</strong>. For fields that accept multiple entries (like Degrees or PGs), separate each entry with a pipe character (<strong>|</strong>).</p>
+                    <p class="text-gray-600">
+                        Upload an Excel file with the initial list of students. This is only for adding new students who have not yet registered.
+                        <br>
+                        Your file <strong>MUST</strong> have two columns: <strong>fullName</strong> and <strong>admissionNo</strong>.
+                    </p>
                     <button id="download-template-btn" class="inline-flex items-center gap-2 bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded-md">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
                         Download Template
@@ -276,9 +254,66 @@
 
         <div id="form-view" class="page-view"></div>
         <div id="profile-view" class="page-view"></div>
+
+        <div id="report-view" class="page-view">
+            <div class="bg-white p-8 border border-gray-200 rounded-lg space-y-8">
+                <div>
+                    <h2 class="text-2xl font-bold mb-4">Submission Summary</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="summary-cards">
+                        <!-- Summary cards will be injected here -->
+                    </div>
+                </div>
+                <div>
+                    <h2 class="text-2xl font-bold mb-4">Batch-wise Report</h2>
+                    <div class="overflow-x-auto border border-gray-200 rounded-lg">
+                        <table class="student-table w-full">
+                            <thead>
+                                <tr>
+                                    <th>Batch</th>
+                                    <th>Completed</th>
+                                    <th>Pending</th>
+                                    <th>Total Students</th>
+                                    <th>Completion %</th>
+                                </tr>
+                            </thead>
+                            <tbody id="batch-report-body">
+                                <!-- Batch report rows will be injected here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="export-view" class="page-view">
+            <div class="bg-white p-8 border border-gray-200 rounded-lg space-y-8">
+                <div>
+                    <h2 class="text-2xl font-bold mb-4">Export All Student Data</h2>
+                    <p class="text-gray-600 mb-4">Download a single Excel file containing all data for every student in the register.</p>
+                    <button id="export-all-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-5 rounded-md shadow-sm">
+                        Export All Students
+                    </button>
+                </div>
+                
+                <div class="border-t pt-8">
+                    <h2 class="text-2xl font-bold mb-4">Export by Batch</h2>
+                    <p class="text-gray-600 mb-4">Select a batch to download a file containing only students from that group.</p>
+                    <div class="flex items-center gap-4">
+                        <select id="export-batch-select" class="block w-full md:w-64 border border-gray-300 rounded-md p-3 shadow-sm focus:ring-2 focus:ring-blue-500">
+                            <option value="">Select a batch...</option>
+                        </select>
+                        <button id="export-batch-btn" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-5 rounded-md shadow-sm">
+                            Export Selected Batch
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
     </div>
 
-    <div id="notification" class="fixed bottom-5 right-5 bg-gray-800 text-white py-3 px-6 rounded-lg shadow-lg hidden no-print">
+    <div id="notification-toast" class="fixed bottom-5 right-5 bg-gray-800 text-white py-3 px-6 rounded-lg shadow-lg hidden no-print data-[show=true]:block data-[type=success]:bg-green-600 data-[type=error]:bg-red-600" data-show="false" data-type="success">
         <p id="notification-message"></p>
     </div>
 
@@ -293,10 +328,16 @@
         </div>
     </div>
 
+    <!-- 
+    ===============================================================
+    JAVASCRIPT LOGIC
+    ===============================================================
+    -->
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const firebaseConfig = {
-                apiKey: "AIzaSyBYCiz_Ec0GeQajAKP3RrxylR1bjIr9wnQ",
+        // This __firebase_config object MUST be defined before this script runs.
+        // It's typically added in a <script> tag just before the </head>
+        const __firebase_config = JSON.stringify({ 
+             apiKey: "AIzaSyBYCiz_Ec0GeQajAKP3RrxylR1bjIr9wnQ",
                 authDomain: "nishan-8d4db.firebaseapp.com",
                 databaseURL: "https://nishan-8d4db-default-rtdb.firebaseio.com",
                 projectId: "nishan-8d4db",
@@ -304,474 +345,974 @@
                 messagingSenderId: "856716933837",
                 appId: "1:856716933837:web:b6114e617a0c001d3f8784",
                 measurementId: "G-ZB1X291PJY"
-            };
+         });
 
-            if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-            
-            const database = firebase.database();
-            const studentsRef = database.ref('students');
-            
-            let allStudents = {};
-            let allStudentIds = []; 
-            let displayLimit = 50;
-            const LOAD_INCREMENT = 50;
+        // --- Global State ---
+        let database;
+        let studentsRef, lookupRef, mapRef;
+        let basePath = '';
 
-            const addStudentBtn = document.getElementById('add-student-btn');
-            const logoutBtn = document.getElementById('logout-btn');
-            const searchBar = document.getElementById('search-bar');
-            const batchFilter = document.getElementById('batch-filter');
-            const studentListBody = document.getElementById('student-list-body');
-            const skeletonLoaderBody = document.getElementById('skeleton-loader-body'); // MODIFIED
-            const loadMoreContainer = document.getElementById('load-more-container'); 
-            const loadMoreBtn = document.getElementById('load-more-btn'); 
-            const noResultsDiv = document.getElementById('no-results');
-            const formView = document.getElementById('form-view');
-            const profileView = document.getElementById('profile-view');
-            const bulkUploadBtn = document.getElementById('bulk-upload-btn');
+        let allStudentsCache = {}; // For the admin dashboard
+        let allStudentIds = []; // For the admin dashboard
+        let displayLimit = 50;
+        const LOAD_INCREMENT = 50;
+        
+        // v8 listener handles
+        let adminDataListener = null;
+        let studentDataListener = null;
+        let studentDocRef = null; 
 
-            // --- MODIFIED: Generate and inject skeleton rows ---
-            const skeletonRows = Array(10).fill('').map(() => `
-                <tr>
-                    <td class="py-4 px-3"><div class="skeleton-cell" style="width: 80%;"></div></td>
-                    <td class="py-4 px-3"><div class="skeleton-cell" style="width: 40%;"></div></td>
-                    <td class="py-4 px-3"><div class="skeleton-cell" style="width: 60%;"></div></td>
-                    <td class="py-4 px-3"><div class="skeleton-cell" style="width: 70%;"></div></td>
-                </tr>
-            `).join('');
-            skeletonLoaderBody.innerHTML = skeletonRows;
-            // --- END MODIFIED ---
+        // --- IMPORTANT ---
+        // Change this password to something secure!
+        const ADMIN_PASSWORD = "admin123"; 
 
-            // (formFields array is unchanged)
-            const formFields = [
-                {legend: 'Personal Information'},
-                {label: 'Full Name *', id: 'fullName', required: true}, {label: 'Date of Birth * (YYYY-MM-DD)', id: 'dob', type: 'date', required: true},
-                {label: 'Birth Place', id: 'birthPlace'}, {label: 'Address', id: 'address', type: 'textarea'},
-                {label: 'Phone Number *', id: 'phone', type: 'tel', required: true}, {label: 'WhatsApp Number', id: 'whatsapp', type: 'tel'},
-                {label: 'Location', id: 'location'}, {label: 'District', id: 'district'}, {label: 'Mahallu Masjid', id: 'mahallu'},
-                {label: 'At Own Home', id: 'atOwnHome', type: 'checkbox'},
-                {legend: 'Educational Information'},
-                {label: 'SSLC Holder', id: 'sslc', type: 'checkbox'}, {label: 'Is Hudawi', id: 'isHudawi', type: 'checkbox'},
-                {label: 'Batch No.', id: 'batchNo'}, {label: 'Admission No.', id: 'admissionNo'},
-                {label: 'Plus Two (Subject)', id: 'plusTwo'}, 
-                {label: 'External Degrees (One per line)', id: 'externalDegrees', type: 'textarea'},
-                {label: 'Darul Huda Degrees (One per line)', id: 'dhDegrees', type: 'textarea'},
-                {label: 'External PGs (One per line)', id: 'externalPGs', type: 'textarea'},
-                {label: 'Darul Huda PGs (One per line)', id: 'dhPGs', type: 'textarea'},
-                {label: 'Other Higher Education (One per line)', id: 'otherHigherEd', type: 'textarea'},
-                {label: 'Job', id: 'job'}, {label: 'Current Job', id: 'currentJob'}, {label: 'Previous Job', id: 'previousJob'},
-                {legend: 'Family Details'},
-                {label: 'Father\'s Name', id: 'fatherName'}, 
-                {label: 'Father\'s Phone', id: 'fatherPhone', type: 'tel'},
-                {label: 'Mother\'s Name', id: 'motherName'},
-                {label: 'Marital Status', id: 'maritalStatus', type: 'select', options: ['Single', 'Married']},
-                {label: 'Wife\'s Name', id: 'wifeName', conditional: true}, {label: 'Children', id: 'children', type: 'number', conditional: true},
-                {label: 'Boys', id: 'boys', type: 'number', conditional: true}, {label: 'Girls', id: 'girls', type: 'number', conditional: true}
-            ];
+        // --- DOM Elements ---
+        const headerControls = document.getElementById('header-controls');
+        const searchBar = document.getElementById('search-bar');
+        const batchFilter = document.getElementById('batch-filter');
+        const statusFilter = document.getElementById('status-filter');
+        const studentListBody = document.getElementById('student-list-body');
+        const skeletonLoaderBody = document.getElementById('skeleton-loader-body');
+        const loadMoreContainer = document.getElementById('load-more-container');
+        const loadMoreBtn = document.getElementById('load-more-btn');
+        const noResultsDiv = document.getElementById('no-results');
+        const notificationToast = document.getElementById('notification-toast');
+        const notificationMessage = document.getElementById('notification-message');
+        
+        // --- Form Fields Definition (Simplified) ---
+        const formFields = [
+            {legend: 'Personal Information'},
+            {label: 'Full Name *', id: 'fullName', required: true}, {label: 'Date of Birth * (YYYY-MM-DD)', id: 'dob', type: 'date', required: true},
+            {label: 'Birth Place', id: 'birthPlace'}, {label: 'Address', id: 'address', type: 'textarea'},
+            {label: 'Phone Number *', id: 'phone', type: 'tel', required: true}, {label: 'WhatsApp Number', id: 'whatsapp', type: 'tel'},
+            {label: 'Location', id: 'location'}, {label: 'District', id: 'district'}, {label: 'Mahallu Masjid', id: 'mahallu'},
+            {label: 'At Own Home', id: 'atOwnHome', type: 'checkbox'},
+            {legend: 'Educational Information'},
+            {label: 'Email', id: 'email', type: 'email'}, 
+            {label: 'Admission No.', id: 'admissionNo', disabled: true},
+            {label: 'SSLC Holder', id: 'sslc', type: 'checkbox'}, {label: 'Is Hudawi', id: 'isHudawi', type: 'checkbox'},
+            {label: 'Batch No.', id: 'batchNo'},
+            {label: 'Plus Two (Subject)', id: 'plusTwo'}, 
+            {label: 'External Degrees (One per line)', id: 'externalDegrees', type: 'textarea'},
+            {label: 'Darul Huda Degrees (One per line)', id: 'dhDegrees', type: 'textarea'},
+            {label: 'External PGs (One per line)', id: 'externalPGs', type: 'textarea'},
+            {label: 'Darul Huda PGs (One per line)', id: 'dhPGs', type: 'textarea'},
+            {label: 'Other Higher Education (One per line)', id: 'otherHigherEd', type: 'textarea'},
+            {label: 'Job', id: 'job'}, {label: 'Current Job', id: 'currentJob'}, {label: 'Previous Job', id: 'previousJob'},
+            {legend: 'Family Details'},
+            {label: 'Father\'s Name', id: 'fatherName'}, 
+            {label: 'Father\'s Phone', id: 'fatherPhone', type: 'tel'},
+            {label: 'Mother\'s Name', id: 'motherName'},
+            {label: 'Marital Status', id: 'maritalStatus', type: 'select', options: ['Single', 'Married']},
+            {label: 'Wife\'s Name', id: 'wifeName', conditional: true}, {label: 'Children', id: 'children', type: 'number', conditional: true},
+            {label: 'Boys', id: 'boys', type: 'number', conditional: true}, {label: 'Girls', id: 'girls', type: 'number', conditional: true}
+        ];
 
-            // (renderStudents function is unchanged)
-            const renderStudents = (students) => {
-                skeletonLoaderBody.style.display = 'none'; // Hide skeleton
-                studentListBody.style.display = ''; // Show real data
-                
-                studentListBody.innerHTML = ''; // Clear previous results
-                
-                const studentIds = Object.keys(students);
-                
-                if (studentIds.length === 0) {
-                    noResultsDiv.classList.remove('hidden');
-                    studentListBody.parentElement.parentElement.classList.add('hidden');
-                } else {
-                    noResultsDiv.classList.add('hidden');
-                    studentListBody.parentElement.parentElement.classList.remove('hidden');
-                    
-                    studentIds.forEach(id => {
-                        const student = students[id];
-                        const hudawiBadge = student.isHudawi ? '<span class="hudawi-badge-s">HUDAWI</span>' : '';
-                        const row = document.createElement('tr');
-                        row.dataset.id = id;
-                        
-                        row.innerHTML = `
-                            <td>${student.fullName || 'N/A'} ${hudawiBadge}</td>
-                            <td>${student.batchNo || 'N/A'}</td>
-                            <td>${student.phone || 'N/A'}</td>
-                            <td>${(student.location || 'N/A') + ', ' + (student.district || 'N/A')}</td>
-                        `;
-                        studentListBody.appendChild(row);
-                    });
-                }
-            };
-            
-            // (applyFilters function is unchanged)
-            const applyFilters = () => {
-                const query = searchBar.value.toLowerCase().trim();
-                const selectedBatch = batchFilter.value;
-                
-                const isFiltered = query || selectedBatch;
+        // --- Utility Functions ---
+        
+        const showNotification = (message, type = 'success') => {
+            notificationMessage.textContent = message;
+            notificationToast.dataset.type = type;
+            notificationToast.dataset.show = 'true';
+            setTimeout(() => {
+                notificationToast.dataset.show = 'false';
+            }, 3000);
+        };
+        
+        const cleanupListeners = () => {
+            if (adminDataListener) {
+                studentsRef.off('value', adminDataListener);
+                adminDataListener = null;
+            }
+            if (studentDataListener) {
+                studentDocRef.off('value', studentDataListener);
+                studentDataListener = null;
+                studentDocRef = null;
+            }
+            allStudentsCache = {};
+            allStudentIds = [];
+        };
 
-                let filteredStudentIds = allStudentIds;
+        // --- Simple Authentication Logic ---
 
-                if (selectedBatch) {
-                    filteredStudentIds = filteredStudentIds.filter(id => {
-                        const student = allStudents[id];
-                        return student.batchNo && String(student.batchNo).trim() === selectedBatch;
-                    });
-                }
+        const handleLogin = (e) => {
+            e.preventDefault();
+            const loginInput = document.getElementById('login-input').value.trim();
+            const errorEl = document.getElementById('login-error');
+            errorEl.textContent = '';
 
-                if (query) {
-                    filteredStudentIds = filteredStudentIds.filter(id => {
-                        const student = allStudents[id];
-                        return Object.values(student).map(String).join(' ').toLowerCase().includes(query);
-                    });
-                }
-                
-                let idsToDisplay;
+            if (!loginInput) {
+                errorEl.textContent = 'Please enter a value.';
+                return;
+            }
 
-                if (isFiltered) {
-                    idsToDisplay = filteredStudentIds;
-                    loadMoreContainer.classList.add('hidden');
-                } else {
-                    idsToDisplay = filteredStudentIds.slice(0, displayLimit);
-                    
-                    if (idsToDisplay.length < filteredStudentIds.length) {
-                        loadMoreContainer.classList.remove('hidden');
-                    } else {
-                        loadMoreContainer.classList.add('hidden');
+            // Check for Admin Login
+            if (loginInput === ADMIN_PASSWORD) {
+                sessionStorage.setItem('appRole', 'admin');
+                sessionStorage.removeItem('studentKey');
+                window.location.hash = '#/admin-dashboard';
+                router();
+                return;
+            }
+
+            // Check for Student Login
+            lookupRef.child(loginInput).once('value')
+                .then((lookupSnap) => {
+                    if (!lookupSnap.exists()) {
+                        errorEl.textContent = 'Admission Number not found. Please try again or contact an admin.';
+                        throw new Error('Admission No. not found');
                     }
-                }
-                
-                const studentsToRender = {};
-                idsToDisplay.forEach(id => {
-                    studentsToRender[id] = allStudents[id];
+                    
+                    const lookupData = lookupSnap.val();
+                    sessionStorage.setItem('appRole', 'student');
+                    sessionStorage.setItem('studentKey', lookupData.studentKey);
+                    window.location.hash = '#/my-profile';
+                    router();
+                })
+                .catch((error) => {
+                    console.error("Student login failed:", error);
+                    if (!error.message.includes('Admission No. not found')) {
+                        errorEl.textContent = 'An error occurred. Please try again.';
+                    }
                 });
+        };
 
-                renderStudents(studentsToRender);
-            };
+        const handleLogout = () => {
+            sessionStorage.removeItem('appRole');
+            sessionStorage.removeItem('studentKey');
+            cleanupListeners();
+            window.location.hash = '#/login';
+            router();
+        };
+        
+        // --- Data Fetching & Rendering (Firebase v8) ---
+
+        const attachAdminDataListener = () => {
+            if (adminDataListener) studentsRef.off('value', adminDataListener);
             
-            // (Event listeners are unchanged)
-            searchBar.addEventListener('input', () => {
-                displayLimit = 100; 
-                applyFilters();
-            });
-            batchFilter.addEventListener('change', () => {
-                displayLimit = 100; 
-                applyFilters();
-            });
-            loadMoreBtn.addEventListener('click', () => {
-                displayLimit += LOAD_INCREMENT; 
-                applyFilters();
-            });
-
-            // (populateBatchFilter is unchanged)
-            const populateBatchFilter = (students) => {
-                const batches = new Set(Object.values(students).map(s => s.batchNo).filter(Boolean));
-                const sortedBatches = Array.from(batches).sort();
-                const currentBatch = batchFilter.value;
-                batchFilter.innerHTML = '<option value="">Filter by Batch</option>';
-                sortedBatches.forEach(batch => {
-                    batchFilter.innerHTML += `<option value="${batch}">Batch: ${batch}</option>`;
-                });
-                batchFilter.value = currentBatch;
-            };
-
-            // (Main data fetch is unchanged)
-            studentsRef.on('value', (snapshot) => {
-                allStudents = snapshot.val() || {};
+            adminDataListener = studentsRef.on('value', (snapshot) => {
+                allStudentsCache = snapshot.val() || {};
                 
-                allStudentIds = Object.keys(allStudents).sort((a, b) => {
-                    const nameA = (allStudents[a].fullName || '').toLowerCase();
-                    const nameB = (allStudents[b].fullName || '').toLowerCase();
+                allStudentIds = Object.keys(allStudentsCache).sort((a, b) => {
+                    const nameA = (allStudentsCache[a].fullName || '').toLowerCase();
+                    const nameB = (allStudentsCache[b].fullName || '').toLowerCase();
                     return nameA.localeCompare(nameB);
                 });
                 
-                populateBatchFilter(allStudents);
-                router(); 
-            }, (error) => console.error("Firebase read failed:", error));
-
-            // (Click listener is unchanged)
-            document.getElementById('student-list-container').addEventListener('click', (e) => {
-                const row = e.target.closest('tr');
-                if (row && row.dataset.id) {
-                    window.location.hash = `#/profile/${row.dataset.id}`;
-                }
-            });
-
-            // (showFormPage is unchanged, except for one line)
-            const showFormPage = (studentId = null) => {
-                const student = studentId ? allStudents[studentId] : {};
-                formView.innerHTML = `
-                    <div class="bg-white p-8 border border-gray-200 rounded-lg">
-                        <div class="flex items-center justify-between pb-4 border-b mb-6">
-                            <h2 class="text-2xl font-bold">${studentId ? 'Edit Student' : 'Add New Student'}</h2>
-                            <button id="cancel-form-btn" class="text-gray-600 hover:text-gray-900 font-semibold">CANCEL</button>
-                        </div>
-                        <form id="student-form" class="space-y-6"></form>
-                        <div class="mt-8 pt-4 border-t">
-                             <button type="submit" form="student-form" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-md">
-                                 ${studentId ? 'Update Student' : 'Save Student'}
-                             </button>
-                        </div>
-                    </div>`;
+                // Re-populate filters and apply
+                // This ensures reports/exports launched from other pages have data
+                populateBatchFilter();
                 
-                const form = document.getElementById('student-form');
-                let formHTML = '';
-                formFields.forEach((f, index) => {
-                    if (f.legend) {
-                        if (index > 0) formHTML += `</fieldset>`;
-                        formHTML += `<fieldset class="space-y-4 pt-4"><legend class="text-lg font-semibold text-gray-800 border-b pb-2 mb-4 w-full">${f.legend}</legend>`;
-                    } else {
-                        const wrapperClass = f.conditional ? 'hidden' : '';
-                        let fieldContent = `<label for="${f.id}" class="block text-sm font-medium text-gray-700">${f.label}</label>`;
-                        if (f.type === 'textarea') fieldContent += `<textarea id="${f.id}" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2" rows="3"></textarea>`;
-                        else if (f.type === 'select') fieldContent += `<select id="${f.id}" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2">${f.options.map(o => `<option>${o}</option>`).join('')}</select>`;
-                        else if (f.type === 'checkbox') fieldContent = `<div class="flex items-center gap-3 pt-2"><input type="checkbox" id="${f.id}" class="h-5 w-5 rounded border-gray-300 text-blue-600"><label for="${f.id}" class="text-sm font-medium text-gray-700">${f.label}</label></div>`;
-                        else fieldContent += `<input type="${f.type || 'text'}" id="${f.id}" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2">`;
-                        formHTML += `<div id="${f.id}-wrapper" class="${wrapperClass}">${fieldContent}</div>`;
-                    }
-                });
-                formHTML += `</fieldset>`;
-                form.innerHTML = formHTML;
-
-                const maritalStatusSelect = document.getElementById('maritalStatus');
-                const toggleMarriedFields = () => {
-                    const show = maritalStatusSelect.value === 'Married';
-                    ['wifeName', 'children', 'boys', 'girls'].forEach(id => {
-                        document.getElementById(`${id}-wrapper`).classList.toggle('hidden', !show);
-                    });
-                };
-                maritalStatusSelect.addEventListener('change', toggleMarriedFields);
-
-                formFields.forEach(f => {
-                    if (!f.legend && student[f.id] !== undefined) {
-                        const el = document.getElementById(f.id);
-                        if(el.type === 'checkbox') el.checked = student[f.id];
-                        else el.value = student[f.id];
-                    }
-                });
-                toggleMarriedFields();
-
-                document.getElementById('cancel-form-btn').onclick = () => { window.location.hash = '#/'; };
-                form.addEventListener('submit', async (e) => {
-                    e.preventDefault();
-                    const studentData = {};
-                    formFields.forEach(f => {
-                        if (f.id) {
-                            const el = document.getElementById(f.id);
-                            studentData[f.id] = el.type === 'checkbox' ? el.checked : el.value;
-                        }
-                    });
-                    if (!studentData.fullName || !studentData.dob || !studentData.phone) {
-                        alert('Please fill all required fields (*).'); return;
-                    }
-                    try {
-                        let studentIdToUpdate = studentId; // MODIFIED
-                        if (studentId) {
-                            await studentsRef.child(studentId).update(studentData);
-                        } else {
-                            const newStudentRef = await studentsRef.push(studentData); // MODIFIED
-                            studentIdToUpdate = newStudentRef.key; // MODIFIED
-                        }
-                        window.location.hash = `#/profile/${studentIdToUpdate}`; // MODIFIED
-                    } catch(err) { console.error("Save failed:", err); }
-                });
-            };
-
-            // (showProfilePage is unchanged)
-            const showProfilePage = (studentId) => {
-                const student = allStudents[studentId];
-                if (!student) { window.location.hash = '#/'; return; }
-                
-                const detailItem = (label, value) => {
-                    if (!value && typeof value !== 'boolean') return '';
-                    value = (typeof value === 'boolean') ? (value ? 'Yes' : 'No') : value;
-                    return `<div class="py-3 sm:grid sm:grid-cols-3 sm:gap-4 print-item"><dt class="text-sm font-medium text-gray-500">${label}</dt><dd class="mt-1 text-base text-gray-900 sm:mt-0 sm:col-span-2">${value}</dd></div>`;
-                };
-
-                const detailListItem = (label, value) => {
-                    if (!value) return '';
-                    const items = value.split('\n').map(s => s.trim()).filter(Boolean); 
-                    if (items.length === 0) return '';
-                    const listHTML = '<ul class="list-disc ml-5 space-y-1">' + items.map(item => `<li>${item}</li>`).join('') + '</ul>';
-                    return `<div class="py-3 sm:grid sm:grid-cols-3 sm:gap-4 print-list-item"><dt class="text-sm font-medium text-gray-500">${label}</dt><dd class="mt-1 text-base text-gray-900 sm:mt-0 sm:col-span-2">${listHTML}</dd></div>`;
-                };
-
-                const firstDhPg = student.dhPGs ? student.dhPGs.split('\n')[0] : null;
-                const firstDhDegree = student.dhDegrees ? student.dhDegrees.split('\n')[0] : null;
-                const subtitle = firstDhPg || firstDhDegree || 'Alumni';
-
-                const hudawiBadge = student.isHudawi ? '<span class="hudawi-badge">HUDAWI</span>' : '';
-                
-                profileView.innerHTML = `
-                    <div class="no-print pb-6 mb-6 border-b flex justify-between items-center">
-                        <button id="back-to-list-btn" class="text-blue-600 hover:underline font-semibold">&larr; Back to List</button>
-                        <div class="admin-only space-x-3">
-                            <button id="profile-print-btn" class="bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-md">Print</button>
-                            <button id="profile-edit-btn" class="bg-blue-600 text-white font-semibold py-2 px-4 rounded-md">Edit</button>
-                            <button id="profile-delete-btn" class="bg-red-600 text-white font-semibold py-2 px-4 rounded-md">Delete</button>
-                        </div>
-                    </div>
-                    <div id="profile-content">
-                        <div class="flex items-center"><h2 class="text-3xl font-bold text-gray-900">${student.fullName}</h2>${hudawiBadge}</div>
-                        <p class="text-lg text-blue-600">${subtitle}</p>
-                        <div class="mt-8 space-y-8">
-                            <div><h3 class="text-xl font-semibold border-b pb-2 mb-3">Personal Information</h3><dl class="divide-y divide-gray-200">${detailItem('Date of Birth', student.dob)}${detailItem('Birth Place', student.birthPlace)}${detailItem('Phone', student.phone)}${detailItem('WhatsApp', student.whatsapp)}${detailItem('Address', student.address)}${detailItem('Location', student.location)}${detailItem('District', student.district)}${detailItem('Mahallu Masjid', student.mahallu)}${detailItem('At Own Home', student.atOwnHome)}</dl></div>
-                            <div><h3 class="text-xl font-semibold border-b pb-2 mb-3">Educational Details</h3><dl class="divide-y divide-gray-200">${detailItem('SSLC Holder', student.sslc)}${detailItem('Is Hudawi', student.isHudawi)}${detailItem('Batch No.', student.batchNo)}${detailItem('Admission No.', student.admissionNo)}${detailItem('Plus Two', student.plusTwo)}${detailListItem('External Degrees', student.externalDegrees)}${detailListItem('Darul Huda Degrees', student.dhDegrees)}${detailListItem('External PGs', student.externalPGs)}${detailListItem('Darul Huda PGs', student.dhPGs)}${detailListItem('Other Higher Education', student.otherHigherEd)}${detailItem('Job', student.job)}${detailItem('Current Job', student.currentJob)}${detailItem('Previous Job', student.previousJob)}</dl></div>
-                            <div><h3 class="text-xl font-semibold border-b pb-2 mb-3">Family Details</h3><dl class="divide-y divide-gray-200">${detailItem('Father\'s Name', student.fatherName)}${detailItem('Father\'s Phone', student.fatherPhone)}${detailItem('Mother\'s Name', student.motherName)}${detailItem('Marital Status', student.maritalStatus)}${student.maritalStatus === 'Married' ? `${detailItem('Wife\'s Name', student.wifeName)}${detailItem('Total Children', student.children)}${detailItem('Boys', student.boys)}${detailItem('Girls', student.girls)}` : ''}</dl></div>
-                        </div>
-                    </div>`;
-
-                document.getElementById('back-to-list-btn').onclick = () => { window.location.hash = '#/'; };
-                if (sessionStorage.getItem('isAdmin') === 'true') {
-                    document.getElementById('profile-print-btn').onclick = () => window.print();
-                    document.getElementById('profile-edit-btn').onclick = () => { window.location.hash = `#/edit/${studentId}`; };
-                    document.getElementById('profile-delete-btn').onclick = () => showDeleteConfirmation(studentId);
-                }
-            };
-            
-            // (Delete confirmation functions are unchanged)
-            const deleteConfirmModal = document.getElementById('delete-confirm-modal');
-            const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
-            const cancelDeleteBtn = document.getElementById('cancel-delete-btn');
-            let studentIdToDelete = null;
-
-            const showDeleteConfirmation = (studentId) => {
-                studentIdToDelete = studentId;
-                deleteConfirmModal.classList.remove('hidden');
-            };
-            const hideDeleteConfirmation = () => {
-                studentIdToDelete = null;
-                deleteConfirmModal.classList.add('hidden');
-            };
-            cancelDeleteBtn.addEventListener('click', hideDeleteConfirmation);
-            confirmDeleteBtn.addEventListener('click', async () => {
-                if (studentIdToDelete) {
-                    try {
-                        await studentsRef.child(studentIdToDelete).remove();
-                        window.location.hash = '#/';
-                    } catch (error) { console.error("Error deleting student:", error); } 
-                    finally { hideDeleteConfirmation(); }
-                }
-            });
-            
-            // (showBulkUploadPage function is unchanged)
-            const showBulkUploadPage = () => {
-                 document.getElementById('back-to-list-btn-from-bulk').onclick = () => { window.location.hash = '#/'; };
-                 const downloadTemplateBtn = document.getElementById('download-template-btn');
-                 const fileInput = document.getElementById('excel-file-input');
-                 const uploadDataBtn = document.getElementById('upload-data-btn');
-                 let selectedFile;
-
-                 downloadTemplateBtn.onclick = () => {
-                      const headers = formFields.filter(f => f.id).map(f => f.id);
-                      const ws = XLSX.utils.aoa_to_sheet([headers]);
-                      const wb = XLSX.utils.book_new();
-                      XLSX.utils.book_append_sheet(wb, ws, "Students");
-                      XLSX.writeFile(wb, "Alumni_Upload_Template.xlsx");
-                 };
-
-                 fileInput.onchange = (e) => {
-                      selectedFile = e.target.files[0];
-                      uploadDataBtn.disabled = !selectedFile;
-                 };
-
-                 uploadDataBtn.onclick = () => {
-                      if (!selectedFile) return;
-                      const reader = new FileReader();
-                      reader.onload = async (event) => {
-                           try {
-                                const data = new Uint8Array(event.target.result);
-                                const workbook = XLSX.read(data, {type: 'array', cellDates: true});
-                                const sheetName = workbook.SheetNames[0];
-                                const worksheet = workbook.Sheets[sheetName];
-                                const json = XLSX.utils.sheet_to_json(worksheet);
-
-                                if (json.length === 0) {
-                                    alert("File is empty or format is incorrect.");
-                                    return;
-                                }
-                                
-                                const updates = {};
-                                const arrayFields = ['externalDegrees', 'dhDegrees', 'externalPGs', 'dhPGs', 'otherHigherEd'];
-
-                                json.forEach(student => {
-                                    arrayFields.forEach(field => {
-                                        if (student[field] && typeof student[field] === 'string') {
-                                            student[field] = student[field].split('|').map(s => s.trim()).filter(Boolean).join('\n');
-                                        }
-                                    });
-
-                                    for (const key in student) {
-                                        if (String(student[key]).toUpperCase() === 'TRUE') student[key] = true;
-                                        if (String(student[key]).toUpperCase() === 'FALSE') student[key] = false;
-                                    }
-                                    
-                                    const newStudentKey = studentsRef.push().key;
-                                    updates[`/students/${newStudentKey}`] = student;
-                                });
-
-                                await database.ref().update(updates);
-                                alert(`${json.length} records uploaded successfully!`);
-                                window.location.hash = '#/';
-
-                           } catch (error) {
-                                console.error("Error processing file:", error);
-                                alert("Failed to process the file. Make sure it's a valid Excel file and the format is correct.");
-                           }
-                      };
-                      reader.readAsArrayBuffer(selectedFile);
-                 };
-            };
-
-            // (Router function is unchanged)
-            const router = () => {
-                window.scrollTo(0, 0);
-                const isAdmin = sessionStorage.getItem('isAdmin') === 'true';
-                document.body.classList.toggle('admin-logged-in', isAdmin);
-                
-                document.body.classList.remove('show-list', 'show-form', 'show-profile', 'show-bulk-upload');
+                // --- MODIFIED: Re-render the active page now that data is loaded ---
+                // This fixes the race condition for all admin pages
                 const [view, id] = (window.location.hash.slice(2) || '/').split('/');
                 
-                loadMoreContainer.classList.add('hidden');
-                noResultsDiv.classList.add('hidden');
-
-                switch(view) {
-                    case 'new':
-                    case 'edit':
-                        if (isAdmin) {
-                            document.body.classList.add('show-form');
-                            showFormPage(id);
-                        } else { window.location.hash = '#/'; }
-                        break;
-                    case 'profile':
-                        document.body.classList.add('show-profile');
-                        showProfilePage(id);
-                        break;
-                    case 'bulk-upload':
-                        if(isAdmin) {
-                            document.body.classList.add('show-bulk-upload');
-                            showBulkUploadPage();
-                        } else { window.location.hash = '#/'}
-                        break;
-                    default:
-                        document.body.classList.add('show-list');
-                        displayLimit = 100; 
-                        applyFilters(); 
-                        break;
+                if (document.body.classList.contains('show-admin-dashboard')) {
+                    applyAdminFilters();
+                } else if (document.body.classList.contains('show-report')) {
+                    renderReportPage();
+                } else if (document.body.classList.contains('show-profile')) {
+                    if (view === 'profile' && id) {
+                        renderProfilePage(id);
+                    }
+                } else if (document.body.classList.contains('show-form')) {
+                    if (view === 'admin-edit' && id) {
+                        renderAdminFormPage(id);
+                    }
                 }
+                
+            }, (error) => {
+                console.error("Firebase admin snapshot failed:", error);
+                showNotification("Failed to load student data. Check security rules.", "error");
+            });
+        };
+
+        const attachStudentDataListener = (studentKey) => {
+            if (studentDataListener) studentDocRef.off('value', studentDataListener);
+
+            studentDocRef = studentsRef.child(studentKey); // Save ref to detach later
+            
+            studentDataListener = studentDocRef.on('value', (snapshot) => {
+                if (snapshot.exists()) {
+                    const studentData = { id: snapshot.key, ...snapshot.val() };
+                    // If we are on the student dashboard, re-render it
+                    if (document.body.classList.contains('show-student-dashboard')) {
+                        renderStudentDashboard(studentData);
+                    }
+                } else {
+                    showNotification("Your student profile was not found. Contacting admin.", "error");
+                    handleLogout();
+                }
+            }, (error) => {
+                console.error("Firebase student snapshot failed:", error);
+                showNotification("Failed to load your profile.", "error");
+            });
+        };
+        
+        // --- All Rendering & Filter Functions ---
+
+        const renderAdminDashboardList = (studentsToRender) => {
+            skeletonLoaderBody.style.display = 'none';
+            studentListBody.style.display = '';
+            studentListBody.innerHTML = '';
+            const studentIds = Object.keys(studentsToRender);
+            
+            if (studentIds.length === 0) {
+                noResultsDiv.classList.remove('hidden');
+                studentListBody.parentElement.parentElement.classList.add('hidden');
+            } else {
+                noResultsDiv.classList.add('hidden');
+                studentListBody.parentElement.parentElement.classList.remove('hidden');
+                
+                studentIds.forEach(id => {
+                    const student = studentsToRender[id];
+                    const hudawiBadge = student.isHudawi ? '<span class="hudawi-badge-s">HUDAWI</span>' : '';
+                    const statusClass = student.dataEntryComplete ? 'status-dot-complete' : 'status-dot-pending';
+                    const statusText = student.dataEntryComplete ? 'Complete' : 'Pending';
+                    const statusHtml = `<div class="flex items-center"><span class="status-dot ${statusClass}"></span><span>${statusText}</span></div>`;
+
+                    const row = document.createElement('tr');
+                    row.className = 'clickable';
+                    row.dataset.id = id;
+                    
+                    row.innerHTML = `
+                        <td>${statusHtml}</td>
+                        <td>${student.fullName || 'N/A'} ${hudawiBadge}</td>
+                        <td>${student.admissionNo || 'N/A'}</td>
+                        <td>${student.batchNo || 'N/A'}</td>
+                        <td>${student.phone || 'N/A'}</td>
+                        <td>${(student.location || 'N/A') + ', ' + (student.district || 'N/A')}</td>
+                    `;
+                    row.addEventListener('click', () => { window.location.hash = `#/profile/${id}`; });
+                    studentListBody.appendChild(row);
+                });
+            }
+        };
+
+        const applyAdminFilters = () => {
+            const query = searchBar.value.toLowerCase().trim();
+            const selectedBatch = batchFilter.value;
+            const selectedStatus = statusFilter.value;
+            const isFiltered = query || selectedBatch || selectedStatus;
+            let filteredStudentIds = allStudentIds;
+
+            if (selectedBatch) {
+                filteredStudentIds = filteredStudentIds.filter(id => {
+                    const student = allStudentsCache[id];
+                    return student.batchNo && String(student.batchNo).trim() === selectedBatch;
+                });
+            }
+            if (selectedStatus) {
+                filteredStudentIds = filteredStudentIds.filter(id => {
+                    const student = allStudentsCache[id];
+                    if (selectedStatus === 'complete') return student.dataEntryComplete;
+                    if (selectedStatus === 'pending') return !student.dataEntryComplete;
+                    return true;
+                });
+            }
+            if (query) {
+                filteredStudentIds = filteredStudentIds.filter(id => {
+                    const student = allStudentsCache[id];
+                    return Object.values(student).map(String).join(' ').toLowerCase().includes(query);
+                });
+            }
+            
+            let idsToDisplay;
+            if (isFiltered) {
+                idsToDisplay = filteredStudentIds;
+                loadMoreContainer.classList.add('hidden');
+            } else {
+                idsToDisplay = filteredStudentIds.slice(0, displayLimit);
+                if (idsToDisplay.length < filteredStudentIds.length) {
+                    loadMoreContainer.classList.remove('hidden');
+                } else {
+                    loadMoreContainer.classList.add('hidden');
+                }
+            }
+            
+            const studentsToRender = {};
+            idsToDisplay.forEach(id => { studentsToRender[id] = allStudentsCache[id]; });
+            renderAdminDashboardList(studentsToRender);
+        };
+        
+        const populateBatchFilter = () => {
+            const batches = new Set(Object.values(allStudentsCache).map(s => s.batchNo).filter(Boolean));
+            const sortedBatches = Array.from(batches).sort();
+            
+            // Populate dashboard filter
+            const currentBatch = batchFilter.value;
+            batchFilter.innerHTML = '<option value="">Filter by Batch</option>';
+            sortedBatches.forEach(batch => {
+                batchFilter.innerHTML += `<option value="${batch}">Batch: ${batch}</option>`;
+            });
+            batchFilter.value = currentBatch;
+
+            // Populate export filter
+            const exportBatchSelect = document.getElementById('export-batch-select');
+            if (exportBatchSelect) {
+                exportBatchSelect.innerHTML = '<option value="">Select a batch...</option>';
+                sortedBatches.forEach(batch => {
+                    exportBatchSelect.innerHTML += `<option value="${batch}">Batch: ${batch}</option>`;
+                });
+            }
+        };
+
+        const renderStudentDashboard = (studentData) => {
+            if (!studentData) {
+                document.getElementById('student-dashboard-view').innerHTML = '<p class="text-center text-red-600">Could not load your profile.</p>';
+                return;
+            }
+            const formHTML = buildFormHtml('student-dashboard-view', studentData.id, studentData, true);
+            document.getElementById('student-dashboard-view').innerHTML = formHTML;
+            attachFormListeners(studentData.id, true, studentData); // Pass data directly
+        };
+        
+        const renderAdminFormPage = (studentId) => {
+            const student = allStudentsCache[studentId] || {};
+            const formHTML = buildFormHtml('form-view', studentId, student, false);
+            document.getElementById('form-view').innerHTML = formHTML;
+            attachFormListeners(studentId, false, student); // Pass data directly
+        };
+
+        const renderProfilePage = (studentId) => {
+            const student = allStudentsCache[studentId];
+            const profileView = document.getElementById('profile-view');
+            if (!student) { 
+                // Don't redirect, just show loading
+                profileView.innerHTML = '<p class="text-center text-gray-500">Loading profile...</p>';
+                return; 
+            }
+            
+            const detailItem = (label, value) => {
+                if (!value && typeof value !== 'boolean') return '';
+                value = (typeof value === 'boolean') ? (value ? 'Yes' : 'No') : value;
+                return `<div class="py-3 sm:grid sm:grid-cols-3 sm:gap-4 print-item"><dt class="text-sm font-medium text-gray-500">${label}</dt><dd class="mt-1 text-base text-gray-900 sm:mt-0 sm:col-span-2">${value}</dd></div>`;
+            };
+            const detailListItem = (label, value) => {
+                if (!value) return '';
+                const items = String(value).split('\n').map(s => s.trim()).filter(Boolean); 
+                if (items.length === 0) return '';
+                const listHTML = '<ul class="list-disc ml-5 space-y-1">' + items.map(item => `<li>${item}</li>`).join('') + '</ul>';
+                return `<div class="py-3 sm:grid sm:grid-cols-3 sm:gap-4 print-list-item"><dt class="text-sm font-medium text-gray-500">${label}</dt><dd class="mt-1 text-base text-gray-900 sm:mt-0 sm:col-span-2">${listHTML}</dd></div>`;
             };
 
-            // (Button listeners are unchanged)
-            logoutBtn.addEventListener('click', () => {
-                sessionStorage.removeItem('isAdmin');
-                window.location.hash = '#/';
-                router();
-            });
-            addStudentBtn.addEventListener('click', () => { window.location.hash = '#/new'; });
-            bulkUploadBtn.addEventListener('click', () => { window.location.hash = '#/bulk-upload'; });
-
-            window.addEventListener('hashchange', router);
+            const firstDhPg = student.dhPGs ? String(student.dhPGs).split('\n')[0] : null;
+            const firstDhDegree = student.dhDegrees ? String(student.dhDegrees).split('\n')[0] : null;
+            const subtitle = firstDhPg || firstDhDegree || 'Alumni';
+            const hudawiBadge = student.isHudawi ? '<span class="hudawi-badge">HUDAWI</span>' : '';
             
-            // Initial load is now handled by the .on('value') callback
+            profileView.innerHTML = `
+                <div class="no-print pb-6 mb-6 border-b flex justify-between items-center">
+                    <button id="back-to-list-btn" class="text-blue-600 hover:underline font-semibold">&larr; Back to List</button>
+                    <div class="space-x-3">
+                        <button id="profile-print-btn" class="bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-md">Print</button>
+                        <button id="profile-edit-btn" class="bg-blue-600 text-white font-semibold py-2 px-4 rounded-md">Edit</button>
+                        <button id="profile-delete-btn" class="bg-red-600 text-white font-semibold py-2 px-4 rounded-md">Delete</button>
+                    </div>
+                </div>
+                <div id="profile-content">
+                    <div class="flex items-center"><h2 class="text-3xl font-bold text-gray-900">${student.fullName}</h2>${hudawiBadge}</div>
+                    <p class="text-lg text-blue-600">${subtitle}</p>
+                    <div class="mt-8 space-y-8">
+                        <div><h3 class="text-xl font-semibold border-b pb-2 mb-3">Personal Information</h3><dl class="divide-y divide-gray-200">${detailItem('Date of Birth', student.dob)}${detailItem('Birth Place', student.birthPlace)}${detailItem('Phone', student.phone)}${detailItem('WhatsApp', student.whatsapp)}${detailItem('Email', student.email)}${detailItem('Address', student.address)}${detailItem('Location', student.location)}${detailItem('District', student.district)}${detailItem('Mahallu Masjid', student.mahallu)}${detailItem('At Own Home', student.atOwnHome)}</dl></div>
+                        <div><h3 class="text-xl font-semibold border-b pb-2 mb-3">Educational Details</h3><dl class="divide-y divide-gray-200">${detailItem('SSLC Holder', student.sslc)}${detailItem('Is Hudawi', student.isHudawi)}${detailItem('Admission No.', student.admissionNo)}${detailItem('Batch No.', student.batchNo)}${detailItem('Plus Two', student.plusTwo)}${detailListItem('External Degrees', student.externalDegrees)}${detailListItem('Darul Huda Degrees', student.dhDegrees)}${detailListItem('External PGs', student.externalPGs)}${detailListItem('Darul Huda PGs', student.dhPGs)}${detailListItem('Other Higher Education', student.otherHigherEd)}${detailItem('Job', student.job)}${detailItem('Current Job', student.currentJob)}${detailItem('Previous Job', student.previousJob)}</dl></div>
+                        <div><h3 class="text-xl font-semibold border-b pb-2 mb-3">Family Details</h3><dl class="divide-y divide-gray-200">${detailItem('Father\'s Name', student.fatherName)}${detailItem('Father\'s Phone', student.fatherPhone)}${detailItem('Mother\'s Name', student.motherName)}${detailItem('Marital Status', student.maritalStatus)}${student.maritalStatus === 'Married' ? `${detailItem('Wife\'s Name', student.wifeName)}${detailItem('Total Children', student.children)}${detailItem('Boys', student.boys)}${detailItem('Girls', student.girls)}` : ''}</dl></div>
+                    </div>
+                </div>`;
+
+            document.getElementById('back-to-list-btn').onclick = () => { window.location.hash = '#/admin-dashboard'; };
+            document.getElementById('profile-print-btn').onclick = () => window.print();
+            document.getElementById('profile-edit-btn').onclick = () => { window.location.hash = `#/admin-edit/${studentId}`; };
+            document.getElementById('profile-delete-btn').onclick = () => showDeleteConfirmation(studentId);
+        };
+        
+        const renderBulkUploadPage = () => {
+            document.getElementById('back-to-list-btn-from-bulk').onclick = () => { window.location.hash = '#/admin-dashboard'; };
+            const downloadTemplateBtn = document.getElementById('download-template-btn');
+            const fileInput = document.getElementById('excel-file-input');
+            const uploadDataBtn = document.getElementById('upload-data-btn');
+            let selectedFile;
+            
+            downloadTemplateBtn.onclick = () => {
+                const headers = ["fullName", "admissionNo"];
+                const ws = XLSX.utils.aoa_to_sheet([headers]);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "NewStudents");
+                XLSX.writeFile(wb, "New_Student_Upload_Template.xlsx");
+            };
+
+            fileInput.onchange = (e) => {
+                selectedFile = e.target.files[0];
+                uploadDataBtn.disabled = !selectedFile;
+            };
+
+            uploadDataBtn.onclick = () => {
+                if (!selectedFile) return;
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    uploadDataBtn.disabled = true;
+                    uploadDataBtn.textContent = 'Uploading, please wait...';
+                    
+                    const data = new Uint8Array(event.target.result);
+                    const workbook = XLSX.read(data, {type: 'array', cellDates: true});
+                    const sheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[sheetName];
+                    const json = XLSX.utils.sheet_to_json(worksheet);
+
+                    if (json.length === 0) {
+                        showNotification("File is empty or format is incorrect.", "error");
+                        uploadDataBtn.disabled = false;
+                        uploadDataBtn.textContent = 'Upload Data';
+                        return;
+                    }
+                    
+                    const updates = {};
+                    let processedCount = 0;
+                    let promises = [];
+
+                    json.forEach(student => {
+                        const fullName = student.fullName ? String(student.fullName).trim() : null;
+                        const admissionNo = student.admissionNo ? String(student.admissionNo).trim() : null;
+
+                        if (!fullName || !admissionNo) {
+                            console.warn("Skipping row with missing fullName or admissionNo:", student);
+                            return;
+                        }
+                        
+                        // Check if admissionNo already exists
+                        const promise = lookupRef.child(admissionNo).once('value').then(lookupSnap => {
+                            if (lookupSnap.exists()) {
+                                console.warn(`Skipping already existing Admission No.: ${admissionNo}`);
+                            } else {
+                                // 1. Get a new key for the student
+                                const newStudentRef = studentsRef.push();
+                                const newKey = newStudentRef.key;
+
+                                // 2. Add student data to updates (simplified)
+                                updates[`${basePath}/students/${newKey}`] = {
+                                    fullName: fullName,
+                                    admissionNo: admissionNo,
+                                    dataEntryComplete: false
+                                };
+                                
+                                // 3. Add lookup data to updates (simplified)
+                                updates[`${basePath}/admissionNoLookup/${admissionNo}`] = { 
+                                    studentKey: newKey
+                                };
+                                processedCount++;
+                            }
+                        });
+                        promises.push(promise);
+                    });
+
+                    // Wait for all checks to complete
+                    Promise.all(promises)
+                        .then(() => {
+                            if (processedCount === 0) {
+                                showNotification("No new students were added. They may already exist.", "error");
+                                return;
+                            }
+                            // Commit the batch update
+                            return database.ref().update(updates);
+                        })
+                        .then(() => {
+                            if (processedCount > 0) {
+                                showNotification(`${processedCount} new student records created successfully!`, "success");
+                                window.location.hash = '#/admin-dashboard';
+                            }
+                        })
+                        .catch(error => {
+                            console.error("Error processing file:", error);
+                            showNotification("Failed to process the file. Check console for errors.", "error");
+                        })
+                        .finally(() => {
+                            uploadDataBtn.disabled = false;
+                            uploadDataBtn.textContent = 'Upload Data';
+                        });
+
+                };
+                reader.readAsArrayBuffer(selectedFile);
+            };
+        };
+
+        
+        /*
+        ===============================================================
+        NEW: Report and Export Functions
+        ===============================================================
+        */
+
+        const renderReportPage = () => {
+            const students = Object.values(allStudentsCache);
+            const total = students.length;
+            
+            if (total === 0) {
+                 document.getElementById('summary-cards').innerHTML = '<p class="text-gray-500">No student data found to generate a report.</p>';
+                 document.getElementById('batch-report-body').innerHTML = '';
+                 return;
+            }
+
+            const complete = students.filter(s => s.dataEntryComplete).length;
+            const pending = total - complete;
+            const percent = total > 0 ? ((complete / total) * 100).toFixed(1) : 0;
+
+            // 1. Render Summary Cards
+            const summaryCardsEl = document.getElementById('summary-cards');
+            summaryCardsEl.innerHTML = `
+                <div class="bg-blue-50 p-6 rounded-lg shadow-sm">
+                    <div class="text-sm font-medium text-blue-600">Total Students</div>
+                    <div class="text-3xl font-bold text-blue-900">${total}</div>
+                </div>
+                <div class="bg-green-50 p-6 rounded-lg shadow-sm">
+                    <div class="text-sm font-medium text-green-600">Completed</div>
+                    <div class="text-3xl font-bold text-green-900">${complete}</div>
+                </div>
+                <div class="bg-red-50 p-6 rounded-lg shadow-sm">
+                    <div class="text-sm font-medium text-red-600">Pending</div>
+                    <div class="text-3xl font-bold text-red-900">${pending}</div>
+                </div>
+            `;
+
+            // 2. Process Batch Data
+            const batchReport = {};
+            students.forEach(s => {
+                const batchNo = s.batchNo || 'No Batch';
+                if (!batchReport[batchNo]) {
+                    batchReport[batchNo] = { complete: 0, pending: 0, total: 0 };
+                }
+                
+                batchReport[batchNo].total++;
+                if (s.dataEntryComplete) {
+                    batchReport[batchNo].complete++;
+                } else {
+                    batchReport[batchNo].pending++;
+                }
+            });
+
+            // 3. Render Batch Report Table
+            const batchReportBodyEl = document.getElementById('batch-report-body');
+            batchReportBodyEl.innerHTML = '';
+            const sortedBatches = Object.keys(batchReport).sort();
+
+            sortedBatches.forEach(batchNo => {
+                const data = batchReport[batchNo];
+                const batchPercent = data.total > 0 ? ((data.complete / data.total) * 100).toFixed(1) : 0;
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="font-medium">${batchNo}</td>
+                    <td class="text-green-600 font-medium">${data.complete}</td>
+                    <td class="text-red-600 font-medium">${data.pending}</td>
+                    <td class="font-bold">${data.total}</td>
+                    <td>
+                        <div class="w-full bg-gray-200 rounded-full h-2.5">
+                            <div class="bg-blue-600 h-2.5 rounded-full" style="width: ${batchPercent}%"></div>
+                        </div>
+                        <span class="text-sm text-gray-500">${batchPercent}%</span>
+                    </td>
+                `;
+                batchReportBodyEl.appendChild(row);
+            });
+        };
+
+        const renderExportPage = () => {
+            // Batch filter is already populated by populateBatchFilter()
+            document.getElementById('export-all-btn').onclick = () => {
+                const students = Object.values(allStudentsCache);
+                if (students.length === 0) {
+                     showNotification("No student data to export.", "error");
+                     return;
+                }
+                exportDataToExcel(students, "all_students_export.xlsx");
+            };
+            
+            document.getElementById('export-batch-btn').onclick = () => {
+                const selectedBatch = document.getElementById('export-batch-select').value;
+                if (!selectedBatch) {
+                    showNotification("Please select a batch to export.", "error");
+                    return;
+                }
+                
+                const students = Object.values(allStudentsCache).filter(s => s.batchNo === selectedBatch);
+                if (students.length === 0) {
+                    showNotification("No students found for this batch.", "error");
+                    return;
+                }
+                
+                exportDataToExcel(students, `batch_${selectedBatch}_export.xlsx`);
+            };
+        };
+
+        const exportDataToExcel = (studentsToExport, filename) => {
+            try {
+                // 1. Get header labels and keys from formFields
+                const headerLabels = [];
+                const headerKeys = [];
+                formFields.forEach(f => {
+                    if (f.id) {
+                        headerLabels.push(f.label.replace(' *', '')); // Clean up labels
+                        headerKeys.push(f.id);
+                    }
+                });
+
+                // 2. Map student data to match header keys
+                const dataForSheet = studentsToExport.map(student => {
+                    let row = {};
+                    headerKeys.forEach(key => {
+                        // Handle multi-line textareas for Excel
+                        if (typeof student[key] === 'string') {
+                            row[key] = student[key].replace(/\n/g, "; "); // Replace newlines with semicolon
+                        } else {
+                            row[key] = student[key] || ''; // Handle null/undefined
+                        }
+                    });
+                    return row;
+                });
+
+                // 3. Create worksheet from JSON data
+                const ws = XLSX.utils.json_to_sheet(dataForSheet, { header: headerKeys });
+                
+                // 4. Overwrite the first row (keys) with the pretty labels
+                XLSX.utils.sheet_add_aoa(ws, [headerLabels], { origin: "A1" });
+
+                // 5. Create workbook and download
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "Students");
+                XLSX.writeFile(wb, filename);
+
+                showNotification("Export generated successfully!", "success");
+            } catch (error) {
+                console.error("Excel export failed:", error);
+                showNotification("An error occurred during export.", "error");
+            }
+        };
+
+
+        // --- Form Rendering and Submission Logic (RE-USABLE) ---
+        
+        const buildFormHtml = (parentId, studentId, student, isStudent) => {
+            let formTitle, cancelHash;
+            if (isStudent) {
+                formTitle = "Update Your Profile";
+                cancelHash = null; 
+            } else {
+                formTitle = studentId ? 'Edit Student Record' : 'Add New Student';
+                cancelHash = studentId ? `#/profile/${studentId}` : '#/admin-dashboard';
+            }
+            const cancelBtnHtml = cancelHash ? `<a href="${cancelHash}" class="text-gray-600 hover:text-gray-900 font-semibold">CANCEL</a>` : '';
+            
+            let formHTML = `
+                <div class="bg-white p-8 border border-gray-200 rounded-lg">
+                    <div class="flex items-center justify-between pb-4 border-b mb-6">
+                        <h2 class="text-2xl font-bold">${formTitle}</h2>
+                        ${cancelBtnHtml}
+                    </div>
+                    <form id="student-form-${parentId}" class="space-y-6">
+            `;
+            
+            formFields.forEach((f, index) => {
+                if (f.legend) {
+                    if (index > 0) formHTML += `</fieldset>`;
+                    formHTML += `<fieldset class="space-y-4 pt-4"><legend class="text-lg font-semibold text-gray-800 border-b pb-2 mb-4 w-full">${f.legend}</legend>`;
+                } else {
+                    const isDisabled = f.disabled ? 'disabled' : '';
+                    const wrapperClass = f.conditional ? 'hidden' : '';
+                    let fieldContent = `<label for="${f.id}" class="block text-sm font-medium text-gray-700">${f.label}</label>`;
+                    if (f.type === 'textarea') fieldContent += `<textarea id="${f.id}" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2" rows="3" ${isDisabled}></textarea>`;
+                    else if (f.type === 'select') fieldContent += `<select id="${f.id}" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2" ${isDisabled}>${f.options.map(o => `<option>${o}</option>`).join('')}</select>`;
+                    else if (f.type === 'checkbox') fieldContent = `<div class="flex items-center gap-3 pt-2"><input type="checkbox" id="${f.id}" class="h-5 w-5 rounded border-gray-300 text-blue-600" ${isDisabled}><label for="${f.id}" class="text-sm font-medium text-gray-700">${f.label}</label></div>`;
+                    else fieldContent += `<input type="${f.type || 'text'}" id="${f.id}" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2" ${isDisabled}>`;
+                    formHTML += `<div id="${f.id}-wrapper" class="${wrapperClass}">${fieldContent}</div>`;
+                }
+            });
+            formHTML += `</fieldset></form>
+                    <div class="mt-8 pt-4 border-t">
+                        <button type="submit" form="student-form-${parentId}" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-md">
+                            ${studentId ? 'Update Profile' : 'Save Student'}
+                        </button>
+                    </div>
+                </div>`;
+            return formHTML;
+        };
+
+        const attachFormListeners = (studentId, isStudent, studentData) => {
+            const parentId = isStudent ? 'student-dashboard-view' : 'form-view';
+            const form = document.getElementById(`student-form-${parentId}`);
+
+            const populateForm = (student) => {
+                const maritalStatusSelect = document.getElementById('maritalStatus');
+                const toggleMarriedFields = () => {
+                    if (!maritalStatusSelect) return;
+                    const show = maritalStatusSelect.value === 'Married';
+                    ['wifeName', 'children', 'boys', 'girls'].forEach(id => {
+                        const el = document.getElementById(`${id}-wrapper`);
+                        if (el) el.classList.toggle('hidden', !show);
+                    });
+                };
+                if(maritalStatusSelect) maritalStatusSelect.addEventListener('change', toggleMarriedFields);
+                
+                formFields.forEach(f => {
+                    if (!f.legend && student[f.id] !== undefined && student[f.id] !== null) {
+                        const el = document.getElementById(f.id);
+                        if(el) {
+                            if(el.type === 'checkbox') el.checked = student[f.id];
+                            else el.value = student[f.id];
+                        }
+                    }
+                });
+                
+                if(maritalStatusSelect) toggleMarriedFields();
+            };
+            
+            // Use the passed-in data directly instead of fetching
+            populateForm(studentData);
+
+            form.addEventListener('submit', (e) => handleFormSubmit(e, studentId, isStudent));
+        };
+        
+        const handleFormSubmit = (e, studentId, isStudent) => {
+            e.preventDefault();
+            const studentData = {};
+            
+            formFields.forEach(f => {
+                if (f.id && !f.disabled) {
+                    const el = document.getElementById(f.id);
+                    if (el) studentData[f.id] = el.type === 'checkbox' ? el.checked : el.value;
+                }
+            });
+            
+            if (!studentData.fullName || !studentData.dob || !studentData.phone) {
+                showNotification('Please fill all required fields (*).', 'error');
+                return;
+            }
+            
+            if (isStudent) studentData.dataEntryComplete = true;
+            
+            // Use .update() to merge data in RTDB
+            studentsRef.child(studentId).update(studentData)
+                .then(() => {
+                    showNotification('Profile updated successfully!', 'success');
+                    if (!isStudent) {
+                        window.location.hash = `#/profile/${studentId}`;
+                    }
+                })
+                .catch((err) => {
+                    console.error("Save failed:", err);
+                    showNotification('Failed to save data. Please try again.', 'error');
+                });
+        };
+        
+        // --- Delete Logic (Admin Only) (Firebase v8) ---
+        
+        const deleteConfirmModal = document.getElementById('delete-confirm-modal');
+        const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
+        const cancelDeleteBtn = document.getElementById('cancel-delete-btn');
+        let studentIdToDelete = null;
+
+        const showDeleteConfirmation = (studentId) => {
+            studentIdToDelete = studentId;
+            deleteConfirmModal.classList.remove('hidden');
+        };
+        const hideDeleteConfirmation = () => {
+            studentIdToDelete = null;
+            deleteConfirmModal.classList.add('hidden');
+        };
+        cancelDeleteBtn.addEventListener('click', hideDeleteConfirmation);
+        
+        confirmDeleteBtn.addEventListener('click', () => {
+            if (studentIdToDelete) {
+                try {
+                    const studentToDelete = allStudentsCache[studentIdToDelete];
+                    if (!studentToDelete) throw new Error("Student not in cache.");
+                    
+                    const updates = {};
+                    updates[`${basePath}/students/${studentIdToDelete}`] = null;
+                    if (studentToDelete.admissionNo) {
+                        updates[`${basePath}/admissionNoLookup/${studentToDelete.admissionNo}`] = null;
+                    }
+                    
+                    database.ref().update(updates)
+                        .then(() => {
+                            showNotification('Student record deleted.', 'success');
+                            window.location.hash = '#/admin-dashboard';
+                        })
+                        .catch((error) => {
+                            console.error("Error deleting student:", error);
+                            showNotification('Failed to delete student.', 'error');
+                        })
+                        .finally(() => {
+                            hideDeleteConfirmation();
+                        });
+                    
+                } catch (error) { 
+                    console.error("Error preparing delete:", error);
+                    showNotification('Failed to delete student.', 'error');
+                    hideDeleteConfirmation();
+                }
+            }
+        });
+        
+        // --- Main Router (MODIFIED: Added new routes) ---
+        
+        const router = () => {
+            window.scrollTo(0, 0);
+            const [view, id] = (window.location.hash.slice(2) || '/').split('/');
+            document.body.className = 'antialiased text-gray-800'; // Reset body class
+            
+            const role = sessionStorage.getItem('appRole');
+            const studentKey = sessionStorage.getItem('studentKey');
+            
+            if (role === 'admin') {
+                // --- ADMIN ROUTER ---
+                headerControls.innerHTML = `
+                    <div class="flex items-center space-x-2">
+                        <button id="admin-dashboard-btn" class="text-gray-700 font-semibold py-2 px-3 rounded-md hover:bg-gray-100">
+                            Dashboard
+                        </button>
+                        <button id="report-btn" class="text-gray-700 font-semibold py-2 px-3 rounded-md hover:bg-gray-100">
+                            Reports
+                        </button>
+                        <button id="export-btn" class="text-gray-700 font-semibold py-2 px-3 rounded-md hover:bg-gray-100">
+                            Export
+                        </button>
+                        <button id="bulk-upload-btn" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-md shadow-sm">
+                            Bulk Upload
+                        </button>
+                        <button id="logout-btn" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 px-4 rounded-md">
+                            Logout
+                        </button>
+                    </div>
+                `;
+                document.getElementById('logout-btn').onclick = handleLogout;
+                document.getElementById('admin-dashboard-btn').onclick = () => window.location.hash = '#/admin-dashboard';
+                document.getElementById('bulk-upload-btn').onclick = () => window.location.hash = '#/bulk-upload';
+                document.getElementById('report-btn').onclick = () => window.location.hash = '#/report';
+                document.getElementById('export-btn').onclick = () => window.location.hash = '#/export';
+                
+                cleanupListeners(); // Clear any student listeners
+                attachAdminDataListener(); // Attach admin listener
+
+                switch(view) {
+                    case 'profile':
+                        document.body.classList.add('show-profile');
+                        // Show loading, listener will render
+                        document.getElementById('profile-view').innerHTML = '<p class="text-center text-gray-500">Loading profile...</p>';
+                        break;
+                    case 'admin-edit':
+                        document.body.classList.add('show-form');
+                        // Show loading, listener will render
+                        document.getElementById('form-view').innerHTML = '<p class="text-center text-gray-500">Loading form...</p>';
+                        break;
+                    case 'bulk-upload':
+                        document.body.classList.add('show-bulk-upload');
+                        renderBulkUploadPage();
+                        break;
+                    case 'report':
+                        document.body.classList.add('show-report');
+                        // Show loading, listener will render
+                        document.getElementById('summary-cards').innerHTML = '<p class="text-gray-500">Loading report...</p>';
+                        document.getElementById('batch-report-body').innerHTML = '';
+                        break;
+                    case 'export':
+                        document.body.classList.add('show-export');
+                        renderExportPage();
+                        break;
+                    default:
+                        document.body.classList.add('show-admin-dashboard');
+                        // Show loading, listener will render
+                        skeletonLoaderBody.style.display = '';
+                        studentListBody.style.display = 'none';
+                        break;
+                }
+            } else if (role === 'student' && studentKey) {
+                // --- STUDENT ROUTER ---
+                headerControls.innerHTML = `
+                    <button id="logout-btn" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 px-5 rounded-md">
+                        Logout
+                    </button>
+                `;
+                document.getElementById('logout-btn').onclick = handleLogout;
+
+                cleanupListeners(); // Clear any admin listeners
+                attachStudentDataListener(studentKey); // Attach listener for THIS student
+
+                document.body.classList.add('show-student-dashboard');
+                // The dashboard will be rendered by the listener
+                document.getElementById('student-dashboard-view').innerHTML = 
+                    '<p class="text-center text-gray-600">Loading your profile...</p>';
+
+                if (view !== 'my-profile' && view !== '') {
+                    window.location.hash = '#/my-profile';
+                }
+            } else { 
+                // --- LOGGED OUT ROUTER ---
+                headerControls.innerHTML = '';
+                cleanupListeners();
+                document.body.classList.add('show-login');
+                renderLoginPage();
+            }
+        };
+        
+        // --- Page Render/Event Attachment Functions ---
+        
+        const renderLoginPage = () => {
+            document.getElementById('login-form').addEventListener('submit', handleLogin);
+        };
+        
+        // --- Application Entry Point ---
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            try {
+                const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+                const firebaseConfigStr = typeof __firebase_config !== 'undefined' ? __firebase_config : '{}';
+                const firebaseConfig = JSON.parse(firebaseConfigStr);
+
+                if (!firebaseConfig.apiKey) {
+                    document.body.className = 'antialiased text-gray-800';
+                    document.getElementById('loading-view').innerHTML = `
+                        <h2 class="text-xl font-semibold text-red-600">Configuration Error</h2>
+                        <p class="text-gray-500">Firebase configuration is missing. The app cannot load.</p>`;
+                    console.error("Firebase config is missing!");
+                    return;
+                }
+
+                if (!firebase.apps.length) {
+                    firebase.initializeApp(firebaseConfig);
+                }
+                database = firebase.database();
+
+                basePath = `/artifacts/${appId}/public/data`;
+                studentsRef = database.ref(`${basePath}/students`);
+                lookupRef = database.ref(`${basePath}/admissionNoLookup`);
+                
+                skeletonLoaderBody.innerHTML = Array(10).fill('').map(() => `
+                    <tr class="no-hover">
+                        <td class="py-4 px-3"><div class="skeleton-cell" style="width: 60%;"></div></td>
+                        <td class="py-4 px-3"><div class="skeleton-cell" style="width: 80%;"></div></td>
+                        <td class="py-4 px-3"><div class="skeleton-cell" style="width: 40%;"></div></td>
+                        <td class="py-4 px-3"><div class="skeleton-cell" style="width: 40%;"></div></td>
+                        <td class="py-4 px-3"><div class="skeleton-cell" style="width: 60%;"></div></td>
+                        <td class="py-4 px-3"><div class="skeleton-cell" style="width: 70%;"></div></td>
+                    </tr>
+                `).join('');
+                
+                searchBar.addEventListener('input', () => { displayLimit = 50; applyAdminFilters(); });
+                batchFilter.addEventListener('change', () => { displayLimit = 50; applyAdminFilters(); });
+                statusFilter.addEventListener('change', () => { displayLimit = 50; applyAdminFilters(); });
+                loadMoreBtn.addEventListener('click', () => { displayLimit += LOAD_INCREMENT; applyAdminFilters(); });
+
+                router(); 
+                
+                window.addEventListener('hashchange', router);
+
+            } catch (error) {
+                console.error("Initialization Failed:", error);
+                document.body.className = 'antialiased text-gray-800';
+                document.getElementById('loading-view').innerHTML = `
+                    <h2 class="text-xl font-semibold text-red-600">Application Error</h2>
+                    <p class="text-gray-500">Could not initialize the application. Check the console for details.</p>`;
+            }
         });
     </script>
 </body>
 </html>
+
