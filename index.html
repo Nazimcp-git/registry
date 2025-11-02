@@ -225,30 +225,66 @@
 
         <div id="student-dashboard-view" class="page-view"></div>
 
+        <!-- NEW: Redesigned Bulk Upload Page -->
         <div id="bulk-upload-view" class="page-view">
             <div class="bg-white p-8 border border-gray-200 rounded-lg">
                 <div class="flex items-center justify-between pb-4 border-b mb-6">
-                    <h2 class="text-2xl font-bold">Bulk Upload New Students</h2>
+                    <h2 class="text-2xl font-bold">Data Management</h2>
                     <button id="back-to-list-btn-from-bulk" class="text-gray-600 hover:text-gray-900 font-semibold">CANCEL</button>
                 </div>
-                <div class="space-y-4">
+                
+                <!-- Tab Headers -->
+                <div class="border-b border-gray-200">
+                    <nav class="-mb-px flex space-x-8" aria-label="Tabs">
+                        <button id="tab-btn-add" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-blue-500 text-blue-600" aria-current="page">
+                            Bulk Add New Students
+                        </button>
+                        <button id="tab-btn-update" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                            Bulk Update Existing Students
+                        </button>
+                    </nav>
+                </div>
+
+                <!-- Tab 1: Add New Students -->
+                <div id="tab-content-add" class="space-y-4 pt-6">
                     <p class="text-gray-600">
                         Upload an Excel file with the initial list of students. This is only for adding new students who have not yet registered.
                         <br>
-                        Your file <strong>MUST</strong> have two columns: <strong>fullName</strong> and <strong>admissionNo</strong>.
+                        Your file <strong>MUST</strong> have columns for <strong>Full Name</strong> and <strong>Admission No</strong>.
                     </p>
-                    <button id="download-template-btn" class="inline-flex items-center gap-2 bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded-md">
+                    <button id="download-template-btn-add" class="inline-flex items-center gap-2 bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded-md">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
-                        Download Template
+                        Download 'Add' Template
                     </button>
+                    <div class="mt-8 pt-6 border-t">
+                        <label for="excel-file-input-add" class="block text-sm font-medium text-gray-700 mb-2">Upload 'Add' File</label>
+                        <input type="file" id="excel-file-input-add" accept=".xlsx, .xls" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"/>
+                        <button id="upload-data-btn-add" class="mt-4 w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-md disabled:bg-gray-400" disabled>
+                            Upload New Students
+                        </button>
+                    </div>
                 </div>
-                <div class="mt-8 pt-6 border-t">
-                    <label for="excel-file-input" class="block text-sm font-medium text-gray-700 mb-2">Upload Completed Excel File</label>
-                    <input type="file" id="excel-file-input" accept=".xlsx, .xls" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"/>
-                    <button id="upload-data-btn" class="mt-4 w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-md disabled:bg-gray-400" disabled>
-                        Upload Data
+
+                <!-- Tab 2: Update Existing Students -->
+                <div id="tab-content-update" class="space-y-4 pt-6 hidden">
+                    <p class="text-gray-600">
+                        Upload an Excel file to update existing student records. The system will match students using the <strong>admissionNo</strong> column.
+                        <br>
+                        Only the columns you include in your file will be updated. Blank cells will be ignored.
+                    </p>
+                    <button id="download-template-btn-update" class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
+                        Download 'Update' Template (Blank)
                     </button>
+                    <div class="mt-8 pt-6 border-t">
+                        <label for="excel-file-input-update" class="block text-sm font-medium text-gray-700 mb-2">Upload 'Update' File</label>
+                        <input type="file" id="excel-file-input-update" accept=".xlsx, .xls" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"/>
+                        <button id="upload-data-btn-update" class="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-md disabled:bg-gray-400" disabled>
+                            Upload Student Updates
+                        </button>
+                    </div>
                 </div>
+
             </div>
         </div>
 
@@ -380,6 +416,7 @@
         const notificationMessage = document.getElementById('notification-message');
         
         // --- Form Fields Definition (Simplified) ---
+        // This is the single source of truth for all student fields
         const formFields = [
             {legend: 'Personal Information'},
             {label: 'Full Name *', id: 'fullName', required: true}, {label: 'Date of Birth * (YYYY-MM-DD)', id: 'dob', type: 'date', required: true},
@@ -389,7 +426,7 @@
             {label: 'At Own Home', id: 'atOwnHome', type: 'checkbox'},
             {legend: 'Educational Information'},
             {label: 'Email', id: 'email', type: 'email'}, 
-            {label: 'Admission No.', id: 'admissionNo', disabled: true},
+            {label: 'Admission No.', id: 'admissionNo', disabled: true}, // 'disabled' means it's for display, not for update
             {label: 'SSLC Holder', id: 'sslc', type: 'checkbox'}, {label: 'Is Hudawi', id: 'isHudawi', type: 'checkbox'},
             {label: 'Batch No.', id: 'batchNo'},
             {label: 'Plus Two (Subject)', id: 'plusTwo'}, 
@@ -431,6 +468,31 @@
             }
             allStudentsCache = {};
             allStudentIds = [];
+        };
+
+        /**
+         * NEW: Checks if a student profile is "Complete" based on new rules
+         * @param {object} student - The student data object
+         * @returns {boolean} - True if the profile is complete
+         */
+        const checkDataCompleteness = (student) => {
+            if (!student) return false;
+            
+            const requiredFields = [
+                'fullName', 
+                'address', 
+                'location', 
+                'phone', 
+                'admissionNo', 
+                'batchNo', 
+                'fatherName'
+            ];
+            
+            // Check if every required field is present and not an empty string
+            return requiredFields.every(field => {
+                const value = student[field];
+                return value !== null && value !== undefined && String(value).trim() !== '';
+            });
         };
 
         // --- Simple Authentication Logic ---
@@ -499,12 +561,8 @@
                     return nameA.localeCompare(nameB);
                 });
                 
-                // Re-populate filters and apply
-                // This ensures reports/exports launched from other pages have data
                 populateBatchFilter();
                 
-                // --- MODIFIED: Re-render the active page now that data is loaded ---
-                // This fixes the race condition for all admin pages
                 const [view, id] = (window.location.hash.slice(2) || '/').split('/');
                 
                 if (document.body.classList.contains('show-admin-dashboard')) {
@@ -535,7 +593,6 @@
             studentDataListener = studentDocRef.on('value', (snapshot) => {
                 if (snapshot.exists()) {
                     const studentData = { id: snapshot.key, ...snapshot.val() };
-                    // If we are on the student dashboard, re-render it
                     if (document.body.classList.contains('show-student-dashboard')) {
                         renderStudentDashboard(studentData);
                     }
@@ -566,9 +623,13 @@
                 
                 studentIds.forEach(id => {
                     const student = studentsToRender[id];
+                    
+                    // NEW: Check completeness status dynamically
+                    const isComplete = checkDataCompleteness(student);
+                    
                     const hudawiBadge = student.isHudawi ? '<span class="hudawi-badge-s">HUDAWI</span>' : '';
-                    const statusClass = student.dataEntryComplete ? 'status-dot-complete' : 'status-dot-pending';
-                    const statusText = student.dataEntryComplete ? 'Complete' : 'Pending';
+                    const statusClass = isComplete ? 'status-dot-complete' : 'status-dot-pending';
+                    const statusText = isComplete ? 'Complete' : 'Pending';
                     const statusHtml = `<div class="flex items-center"><span class="status-dot ${statusClass}"></span><span>${statusText}</span></div>`;
 
                     const row = document.createElement('tr');
@@ -605,8 +666,10 @@
             if (selectedStatus) {
                 filteredStudentIds = filteredStudentIds.filter(id => {
                     const student = allStudentsCache[id];
-                    if (selectedStatus === 'complete') return student.dataEntryComplete;
-                    if (selectedStatus === 'pending') return !student.dataEntryComplete;
+                    // NEW: Check completeness dynamically for filtering
+                    const isComplete = checkDataCompleteness(student);
+                    if (selectedStatus === 'complete') return isComplete;
+                    if (selectedStatus === 'pending') return !isComplete;
                     return true;
                 });
             }
@@ -678,7 +741,6 @@
             const student = allStudentsCache[studentId];
             const profileView = document.getElementById('profile-view');
             if (!student) { 
-                // Don't redirect, just show loading
                 profileView.innerHTML = '<p class="text-center text-gray-500">Loading profile...</p>';
                 return; 
             }
@@ -726,43 +788,109 @@
             document.getElementById('profile-delete-btn').onclick = () => showDeleteConfirmation(studentId);
         };
         
+        /**
+         * Renders the combined Bulk Upload / Update page
+         */
         const renderBulkUploadPage = () => {
-            document.getElementById('back-to-list-btn-from-bulk').onclick = () => { window.location.hash = '#/admin-dashboard'; };
-            const downloadTemplateBtn = document.getElementById('download-template-btn');
-            const fileInput = document.getElementById('excel-file-input');
-            const uploadDataBtn = document.getElementById('upload-data-btn');
-            let selectedFile;
+            // --- Tab Controls ---
+            const tabBtnAdd = document.getElementById('tab-btn-add');
+            const tabBtnUpdate = document.getElementById('tab-btn-update');
+            const tabContentAdd = document.getElementById('tab-content-add');
+            const tabContentUpdate = document.getElementById('tab-content-update');
+
+            const showTab = (tabName) => {
+                if (tabName === 'add') {
+                    tabContentAdd.classList.remove('hidden');
+                    tabContentUpdate.classList.add('hidden');
+                    tabBtnAdd.classList.add('border-blue-500', 'text-blue-600');
+                    tabBtnAdd.classList.remove('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+                    tabBtnUpdate.classList.add('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+                    tabBtnUpdate.classList.remove('border-blue-500', 'text-blue-600');
+                } else {
+                    tabContentAdd.classList.add('hidden');
+                    tabContentUpdate.classList.remove('hidden');
+                    tabBtnUpdate.classList.add('border-blue-500', 'text-blue-600');
+                    tabBtnUpdate.classList.remove('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+                    tabBtnAdd.classList.add('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+                    tabBtnAdd.classList.remove('border-blue-500', 'text-blue-600');
+                }
+            };
             
-            downloadTemplateBtn.onclick = () => {
-                const headers = ["fullName", "admissionNo"];
+            tabBtnAdd.onclick = () => showTab('add');
+            tabBtnUpdate.onclick = () => showTab('update');
+            
+            document.getElementById('back-to-list-btn-from-bulk').onclick = () => { window.location.hash = '#/admin-dashboard'; };
+
+            // --- Tool 1: Add New Students (FIXED) ---
+            const downloadTemplateBtnAdd = document.getElementById('download-template-btn-add');
+            const fileInputAdd = document.getElementById('excel-file-input-add');
+            const uploadDataBtnAdd = document.getElementById('upload-data-btn-add');
+            let selectedFileAdd;
+            
+            downloadTemplateBtnAdd.onclick = () => {
+                const headers = ["Full Name", "Admission No"];
                 const ws = XLSX.utils.aoa_to_sheet([headers]);
                 const wb = XLSX.utils.book_new();
                 XLSX.utils.book_append_sheet(wb, ws, "NewStudents");
                 XLSX.writeFile(wb, "New_Student_Upload_Template.xlsx");
             };
 
-            fileInput.onchange = (e) => {
-                selectedFile = e.target.files[0];
-                uploadDataBtn.disabled = !selectedFile;
+            fileInputAdd.onchange = (e) => {
+                selectedFileAdd = e.target.files[0];
+                uploadDataBtnAdd.disabled = !selectedFileAdd;
             };
 
-            uploadDataBtn.onclick = () => {
-                if (!selectedFile) return;
+            uploadDataBtnAdd.onclick = () => {
+                if (!selectedFileAdd) return;
                 const reader = new FileReader();
                 reader.onload = (event) => {
-                    uploadDataBtn.disabled = true;
-                    uploadDataBtn.textContent = 'Uploading, please wait...';
+                    uploadDataBtnAdd.disabled = true;
+                    uploadDataBtnAdd.textContent = 'Uploading, please wait...';
                     
                     const data = new Uint8Array(event.target.result);
                     const workbook = XLSX.read(data, {type: 'array', cellDates: true});
                     const sheetName = workbook.SheetNames[0];
                     const worksheet = workbook.Sheets[sheetName];
-                    const json = XLSX.utils.sheet_to_json(worksheet);
+                    const sheetData = XLSX.utils.sheet_to_json(worksheet, {
+                        header: 1,
+                        raw: false,
+                        dateNF: 'yyyy-mm-dd'
+                    });
 
-                    if (json.length === 0) {
+                    if (sheetData.length < 2) {
                         showNotification("File is empty or format is incorrect.", "error");
-                        uploadDataBtn.disabled = false;
-                        uploadDataBtn.textContent = 'Upload Data';
+                        uploadDataBtnAdd.disabled = false;
+                        uploadDataBtnAdd.textContent = 'Upload New Students';
+                        return;
+                    }
+                    
+                    const headerRow = sheetData[0].map(h => String(h).trim());
+                    const dataRows = sheetData.slice(1);
+
+                    // FIX: Expanded alias map
+                    const aliasToKeyMap = {
+                        "admissionno": "admissionNo",
+                        "admission no": "admissionNo",
+                        "admission no.": "admissionNo",
+                        "adno": "admissionNo", // New alias
+                        "ad no": "admissionNo", // New alias
+                        "fullname": "fullName",
+                        "full name": "fullName",
+                        "name": "fullName"
+                    };
+
+                    const keyToIndexMap = {};
+                    headerRow.forEach((header, index) => {
+                        const machineKey = aliasToKeyMap[header.toLowerCase()];
+                        if (machineKey) {
+                            keyToIndexMap[machineKey] = index;
+                        }
+                    });
+
+                    if (keyToIndexMap['admissionNo'] === undefined || keyToIndexMap['fullName'] === undefined) {
+                        showNotification("File is missing 'Admission No' or 'Full Name' column.", "error");
+                        uploadDataBtnAdd.disabled = false;
+                        uploadDataBtnAdd.textContent = 'Upload New Students';
                         return;
                     }
                     
@@ -770,32 +898,32 @@
                     let processedCount = 0;
                     let promises = [];
 
-                    json.forEach(student => {
-                        const fullName = student.fullName ? String(student.fullName).trim() : null;
-                        const admissionNo = student.admissionNo ? String(student.admissionNo).trim() : null;
+                    dataRows.forEach(row => {
+                        const fullName = row[keyToIndexMap['fullName']] ? String(row[keyToIndexMap['fullName']]).trim() : null;
+                        const admissionNo = row[keyToIndexMap['admissionNo']] ? String(row[keyToIndexMap['admissionNo']]).trim() : null;
 
                         if (!fullName || !admissionNo) {
-                            console.warn("Skipping row with missing fullName or admissionNo:", student);
+                            console.warn("Skipping row with missing fullName or admissionNo:", row);
                             return;
                         }
                         
-                        // Check if admissionNo already exists
                         const promise = lookupRef.child(admissionNo).once('value').then(lookupSnap => {
                             if (lookupSnap.exists()) {
                                 console.warn(`Skipping already existing Admission No.: ${admissionNo}`);
                             } else {
-                                // 1. Get a new key for the student
                                 const newStudentRef = studentsRef.push();
                                 const newKey = newStudentRef.key;
-
-                                // 2. Add student data to updates (simplified)
-                                updates[`${basePath}/students/${newKey}`] = {
+                                
+                                const newStudentData = {
                                     fullName: fullName,
                                     admissionNo: admissionNo,
-                                    dataEntryComplete: false
+                                    dataEntryComplete: checkDataCompleteness({
+                                        fullName: fullName,
+                                        admissionNo: admissionNo
+                                    }) 
                                 };
-                                
-                                // 3. Add lookup data to updates (simplified)
+
+                                updates[`${basePath}/students/${newKey}`] = newStudentData;
                                 updates[`${basePath}/admissionNoLookup/${admissionNo}`] = { 
                                     studentKey: newKey
                                 };
@@ -805,14 +933,12 @@
                         promises.push(promise);
                     });
 
-                    // Wait for all checks to complete
                     Promise.all(promises)
                         .then(() => {
                             if (processedCount === 0) {
                                 showNotification("No new students were added. They may already exist.", "error");
                                 return;
                             }
-                            // Commit the batch update
                             return database.ref().update(updates);
                         })
                         .then(() => {
@@ -826,13 +952,187 @@
                             showNotification("Failed to process the file. Check console for errors.", "error");
                         })
                         .finally(() => {
-                            uploadDataBtn.disabled = false;
-                            uploadDataBtn.textContent = 'Upload Data';
+                            uploadDataBtnAdd.disabled = false;
+                            uploadDataBtnAdd.textContent = 'Upload New Students';
                         });
 
                 };
-                reader.readAsArrayBuffer(selectedFile);
+                reader.readAsArrayBuffer(selectedFileAdd);
             };
+
+            // --- Tool 2: Update Existing Students (FIXED) ---
+            const downloadTemplateBtnUpdate = document.getElementById('download-template-btn-update');
+            const fileInputUpdate = document.getElementById('excel-file-input-update');
+            const uploadDataBtnUpdate = document.getElementById('upload-data-btn-update');
+            let selectedFileUpdate;
+
+            // FIX: Changed this button to download a BLANK template with all headers
+            downloadTemplateBtnUpdate.onclick = () => {
+                // Create headers for the template
+                const headerLabels = ["Admission No."]; // Use human-readable label
+                
+                formFields.forEach(f => {
+                    if (f.id && !f.disabled) {
+                        headerLabels.push(f.label.replace(' *', '')); // "Full Name"
+                    }
+                });
+
+                const ws = XLSX.utils.aoa_to_sheet([headerLabels]);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "StudentUpdates");
+                XLSX.writeFile(wb, "Student_Update_Template_Blank.xlsx");
+            };
+            
+            fileInputUpdate.onchange = (e) => {
+                selectedFileUpdate = e.target.files[0];
+                uploadDataBtnUpdate.disabled = !selectedFileUpdate;
+            };
+
+            uploadDataBtnUpdate.onclick = () => {
+                if (!selectedFileUpdate) return;
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    uploadDataBtnUpdate.disabled = true;
+                    uploadDataBtnUpdate.textContent = 'Updating, please wait...';
+                    
+                    const data = new Uint8Array(event.target.result);
+                    const workbook = XLSX.read(data, {type: 'array', cellDates: true});
+                    const sheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[sheetName];
+                    
+                    const sheetData = XLSX.utils.sheet_to_json(worksheet, {
+                        header: 1,
+                        raw: false,
+                        dateNF: 'yyyy-mm-dd'
+                    });
+
+                    if (sheetData.length < 2) {
+                        showNotification("File is empty or has no data.", "error");
+                        uploadDataBtnUpdate.disabled = false;
+                        uploadDataBtnUpdate.textContent = 'Upload Student Updates';
+                        return;
+                    }
+                    
+                    const headerRow = sheetData[0].map(h => String(h).trim());
+                    const dataRows = sheetData.slice(1);
+
+                    const keyToIndexMap = {};
+                    const aliasToKeyMap = {};
+                    formFields.forEach(f => {
+                        if (f.id) {
+                            aliasToKeyMap[f.id] = f.id; 
+                            aliasToKeyMap[f.label.replace(' *', '')] = f.id; 
+                            aliasToKeyMap[f.label.replace(' *', '').toLowerCase()] = f.id;
+                        }
+                    });
+                    // FIX: Expanded alias map
+                    aliasToKeyMap["Admission No."] = "admissionNo";
+                    aliasToKeyMap["AdmissionNo"] = "admissionNo";
+                    aliasToKeyMap["admissionno"] = "admissionNo";
+                    aliasToKeyMap["adno"] = "admissionNo";
+                    aliasToKeyMap["ad no"] = "admissionNo";
+                    aliasToKeyMap["Name"] = "fullName";
+                    aliasToKeyMap["fullname"] = "fullName";
+                    aliasToKeyMap["DOB"] = "dob";
+                    aliasToKeyMap["Phone"] = "phone";
+                    aliasToKeyMap["Batch"] = "batchNo";
+
+                    headerRow.forEach((header, index) => {
+                        const machineKey = aliasToKeyMap[header] || aliasToKeyMap[header.toLowerCase()];
+                        if (machineKey) {
+                            keyToIndexMap[machineKey] = index;
+                        }
+                    });
+
+                    if (keyToIndexMap['admissionNo'] === undefined) {
+                        showNotification("File is missing a valid 'admissionNo' (or 'Admission No.') column.", "error");
+                        uploadDataBtnUpdate.disabled = false;
+                        uploadDataBtnUpdate.textContent = 'Upload Student Updates';
+                        return;
+                    }
+
+                    const updates = {};
+                    let processedCount = 0;
+                    let promises = [];
+                    const validKeys = new Set(formFields.map(f => f.id).filter(Boolean));
+
+                    dataRows.forEach(row => {
+                        const admissionNo = row[keyToIndexMap['admissionNo']] ? String(row[keyToIndexMap['admissionNo']]).trim() : null;
+                        if (!admissionNo) {
+                            console.warn("Skipping row with missing admissionNo:", row);
+                            return;
+                        }
+
+                        const promise = lookupRef.child(admissionNo).once('value').then(lookupSnap => {
+                            if (!lookupSnap.exists()) {
+                                console.warn(`Skipping update, Admission No. ${admissionNo} not found.`);
+                            } else {
+                                const studentKey = lookupSnap.val().studentKey;
+                                const studentUpdates = {};
+                                let hasUpdate = false;
+                                
+                                const existingData = allStudentsCache[studentKey] || {};
+
+                                validKeys.forEach(key => {
+                                    const colIndex = keyToIndexMap[key];
+                                    // FIX: Allow admissionNo to be updated
+                                    if (colIndex !== undefined) { 
+                                        const value = row[colIndex];
+                                        if (value !== null && value !== undefined && value !== "") {
+                                            let finalValue = value;
+                                            if (typeof finalValue === 'string') {
+                                                if (finalValue.toUpperCase() === 'TRUE') finalValue = true;
+                                                else if (finalValue.toUpperCase() === 'FALSE') finalValue = false;
+                                                else if (key.includes('Degrees') || key.includes('PGs') || key === 'address') {
+                                                    finalValue = finalValue.replace(/;\s*/g, '\n');
+                                                }
+                                            }
+                                            studentUpdates[key] = finalValue;
+                                            hasUpdate = true;
+                                        }
+                                    }
+                                });
+                                
+                                if (hasUpdate) {
+                                    const mergedStudentData = { ...existingData, ...studentUpdates };
+                                    studentUpdates['dataEntryComplete'] = checkDataCompleteness(mergedStudentData); 
+                                    
+                                    updates[`${basePath}/students/${studentKey}`] = studentUpdates;
+                                    processedCount++;
+                                }
+                            }
+                        });
+                        promises.push(promise);
+                    });
+
+                    Promise.all(promises)
+                        .then(() => {
+                            if (processedCount === 0) {
+                                showNotification("No valid student records were found to update.", "error");
+                                return;
+                            }
+                            return database.ref().update(updates);
+                        })
+                        .then(() => {
+                            if (processedCount > 0) {
+                                showNotification(`${processedCount} student records updated successfully!`, "success");
+                                window.location.hash = '#/admin-dashboard';
+                            }
+                        })
+                        .catch(error => {
+                            console.error("Error processing update file:", error);
+                            showNotification("Failed to process the file. Check console for errors.", "error");
+                        })
+                        .finally(() => {
+                            uploadDataBtnUpdate.disabled = false;
+                            uploadDataBtnUpdate.textContent = 'Upload Student Updates';
+                        });
+                };
+                reader.readAsArrayBuffer(selectedFileUpdate);
+            };
+
+            // Initialize the default tab
+            showTab('add');
         };
 
         
@@ -851,10 +1151,28 @@
                  document.getElementById('batch-report-body').innerHTML = '';
                  return;
             }
+            
+            // NEW: Use dynamic completeness check
+            let complete = 0;
+            const batchReport = {};
 
-            const complete = students.filter(s => s.dataEntryComplete).length;
+            students.forEach(s => {
+                const isComplete = checkDataCompleteness(s);
+                const batchNo = s.batchNo || 'No Batch';
+                if (!batchReport[batchNo]) {
+                    batchReport[batchNo] = { complete: 0, pending: 0, total: 0 };
+                }
+                
+                batchReport[batchNo].total++;
+                if (isComplete) {
+                    batchReport[batchNo].complete++;
+                    complete++;
+                } else {
+                    batchReport[batchNo].pending++;
+                }
+            });
+
             const pending = total - complete;
-            const percent = total > 0 ? ((complete / total) * 100).toFixed(1) : 0;
 
             // 1. Render Summary Cards
             const summaryCardsEl = document.getElementById('summary-cards');
@@ -873,23 +1191,7 @@
                 </div>
             `;
 
-            // 2. Process Batch Data
-            const batchReport = {};
-            students.forEach(s => {
-                const batchNo = s.batchNo || 'No Batch';
-                if (!batchReport[batchNo]) {
-                    batchReport[batchNo] = { complete: 0, pending: 0, total: 0 };
-                }
-                
-                batchReport[batchNo].total++;
-                if (s.dataEntryComplete) {
-                    batchReport[batchNo].complete++;
-                } else {
-                    batchReport[batchNo].pending++;
-                }
-            });
-
-            // 3. Render Batch Report Table
+            // 2. Render Batch Report Table
             const batchReportBodyEl = document.getElementById('batch-report-body');
             batchReportBodyEl.innerHTML = '';
             const sortedBatches = Object.keys(batchReport).sort();
@@ -947,8 +1249,12 @@
                 // 1. Get header labels and keys from formFields
                 const headerLabels = [];
                 const headerKeys = [];
+                // Add admissionNo first, as it's the key
+                headerLabels.push("Admission No.");
+                headerKeys.push("admissionNo");
+
                 formFields.forEach(f => {
-                    if (f.id) {
+                    if (f.id && !f.disabled) { // Check !f.disabled
                         headerLabels.push(f.label.replace(' *', '')); // Clean up labels
                         headerKeys.push(f.id);
                     }
@@ -1085,7 +1391,13 @@
                 return;
             }
             
-            if (isStudent) studentData.dataEntryComplete = true;
+            // NEW: Check for completeness
+            // Get existing data to ensure a complete check
+            const existingData = isStudent ? (allStudentsCache[studentId] || {}) : (allStudentsCache[studentId] || {});
+            const mergedData = { ...existingData, ...studentData };
+            
+            // Set dataEntryComplete based on the new logic
+            studentData.dataEntryComplete = checkDataCompleteness(mergedData);
             
             // Use .update() to merge data in RTDB
             studentsRef.child(studentId).update(studentData)
@@ -1175,7 +1487,7 @@
                             Export
                         </button>
                         <button id="bulk-upload-btn" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-md shadow-sm">
-                            Bulk Upload
+                            Data Management
                         </button>
                         <button id="logout-btn" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 px-4 rounded-md">
                             Logout
@@ -1194,12 +1506,10 @@
                 switch(view) {
                     case 'profile':
                         document.body.classList.add('show-profile');
-                        // Show loading, listener will render
                         document.getElementById('profile-view').innerHTML = '<p class="text-center text-gray-500">Loading profile...</p>';
                         break;
                     case 'admin-edit':
                         document.body.classList.add('show-form');
-                        // Show loading, listener will render
                         document.getElementById('form-view').innerHTML = '<p class="text-center text-gray-500">Loading form...</p>';
                         break;
                     case 'bulk-upload':
@@ -1208,7 +1518,6 @@
                         break;
                     case 'report':
                         document.body.classList.add('show-report');
-                        // Show loading, listener will render
                         document.getElementById('summary-cards').innerHTML = '<p class="text-gray-500">Loading report...</p>';
                         document.getElementById('batch-report-body').innerHTML = '';
                         break;
@@ -1218,7 +1527,6 @@
                         break;
                     default:
                         document.body.classList.add('show-admin-dashboard');
-                        // Show loading, listener will render
                         skeletonLoaderBody.style.display = '';
                         studentListBody.style.display = 'none';
                         break;
@@ -1236,7 +1544,6 @@
                 attachStudentDataListener(studentKey); // Attach listener for THIS student
 
                 document.body.classList.add('show-student-dashboard');
-                // The dashboard will be rendered by the listener
                 document.getElementById('student-dashboard-view').innerHTML = 
                     '<p class="text-center text-gray-600">Loading your profile...</p>';
 
