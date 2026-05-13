@@ -5,11 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Alumni Student Portal</title>
     
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
+
     
     <!-- Google Font -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
     <!-- SheetJS (for Excel Upload) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -26,12 +25,70 @@
     -->
 
     <style>
-        /* All CSS styles */
+        :root {
+            --bg-primary: #f8f9fb;
+            --bg-secondary: #ffffff;
+            --bg-card: #ffffff;
+            --bg-glass: #ffffff;
+            --border-color: #e5e7eb;
+            --border-glow: #c7d2fe;
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+            --text-muted: #9ca3af;
+            --accent-primary: #4f46e5;
+            --accent-hover: #4338ca;
+            --accent-glow: rgba(79, 70, 229, 0.15);
+            --success: #059669;
+            --success-bg: #ecfdf5;
+            --danger: #dc2626;
+            --danger-bg: #fef2f2;
+            --warning: #d97706;
+            --gradient-1: linear-gradient(135deg, #4f46e5, #6366f1);
+            --gradient-2: linear-gradient(135deg, #f8f9fb, #ffffff);
+            --shadow-card: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04);
+            --shadow-glow: 0 4px 20px rgba(79,70,229,0.08);
+            --radius: 14px;
+            --radius-sm: 8px;
+            --transition: all 0.2s ease;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
         }
-        .page-view { display: none; }
+
+        @keyframes bgShift {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(-5%, -5%) scale(1.1); }
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .page-view { display: none; animation: fadeInUp 0.5s ease forwards; }
+        .hidden { display: none !important; }
         body.show-loading #loading-view,
         body.show-login #login-view,
         body.show-admin-dashboard #admin-dashboard-view,
@@ -40,78 +97,339 @@
         body.show-form #form-view,
         body.show-bulk-upload #bulk-upload-view,
         body.show-report #report-view,
-        body.show-export #export-view { 
-            display: block; 
+        body.show-export #export-view { display: block; }
+
+        /* Card */
+        .glass-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-card);
+            transition: var(--transition);
         }
-        .student-table {
-            border-collapse: collapse;
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border-radius: var(--radius-sm);
+            font-weight: 600;
+            font-size: 0.875rem;
+            cursor: pointer;
+            border: none;
+            transition: var(--transition);
+            text-decoration: none;
+            letter-spacing: 0.01em;
+        }
+        .btn-primary {
+            background: var(--gradient-1);
+            color: white;
+            box-shadow: 0 4px 15px rgba(99,102,241,0.3);
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(99,102,241,0.45);
+        }
+        .btn-secondary {
+            background: #f3f4f6;
+            color: #374151;
+            border: 1px solid var(--border-color);
+        }
+        .btn-secondary:hover {
+            background: #e5e7eb;
+            border-color: #d1d5db;
+        }
+        .btn-danger {
+            background: var(--danger-bg);
+            color: var(--danger);
+            border: 1px solid rgba(248,113,113,0.2);
+        }
+        .btn-danger:hover {
+            background: rgba(248,113,113,0.2);
+        }
+        .btn-success {
+            background: linear-gradient(135deg, #059669, #34d399);
+            color: white;
+            box-shadow: 0 4px 15px rgba(52,211,153,0.25);
+        }
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(52,211,153,0.4);
+        }
+        .btn-ghost {
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid transparent;
+        }
+        .btn-ghost:hover {
+            background: #f3f4f6;
+            color: var(--text-primary);
+        }
+        .btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        /* Inputs */
+        input[type="text"], input[type="email"], input[type="tel"],
+        input[type="date"], input[type="number"], input[type="password"],
+        select, textarea {
             width: 100%;
-            font-size: 0.9em;
+            padding: 12px 16px;
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+            transition: var(--transition);
+            outline: none;
         }
-        .student-table th, .student-table td {
-            border: 1px solid #e2e8f0;
-            padding: 12px 15px;
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+        input::placeholder { color: var(--text-muted); }
+        input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--accent-primary);
+            cursor: pointer;
+        }
+        input[type="file"] {
+            padding: 10px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            background: #f9fafb;
+        }
+        input[type="file"]::file-selector-button {
+            background: var(--accent-primary);
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.8rem;
+            margin-right: 12px;
+            transition: var(--transition);
+        }
+        label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        /* Table */
+        .student-table {
+            border-collapse: separate;
+            border-spacing: 0;
+            width: 100%;
+            font-size: 0.875rem;
+        }
+        .student-table th {
+            padding: 14px 18px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-muted);
+            background: #f9fafb;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .student-table td {
+            padding: 14px 18px;
             text-align: left;
             vertical-align: middle;
-        }
-        .student-table thead th {
-            background-color: #f8fafc;
-            font-weight: 600;
+            border-bottom: 1px solid #f3f4f6;
+            color: var(--text-primary);
         }
         .student-table tbody tr {
-            transition: background-color 0.2s ease-in-out;
+            transition: var(--transition);
         }
         .student-table tbody tr:not(.no-hover):hover {
-            background-color: #f1f5f9;
+            background: #f9fafb;
         }
-        .student-table tbody tr.clickable {
-             cursor: pointer;
-        }
+        .student-table tbody tr.clickable { cursor: pointer; }
+
+        /* Badges */
         .hudawi-badge {
             display: inline-block;
-            background-color: #16a34a;
+            background: linear-gradient(135deg, #059669, #34d399);
             color: white;
-            padding: 2px 10px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            border-radius: 9999px;
+            padding: 3px 12px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            border-radius: 20px;
             margin-left: 12px;
             vertical-align: middle;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
         }
         .hudawi-badge-s {
             display: inline-block;
-            background-color: #ffffff;
-            color: rgb(0, 0, 0);
-            padding: 2px 6px;
-            font-size: 0.5rem;
-            font-weight: 600;
-            border-radius: 9999px;
-            margin-left: 12px;
+            background: linear-gradient(135deg, #059669, #34d399);
+            color: white;
+            padding: 2px 8px;
+            font-size: 0.55rem;
+            font-weight: 700;
+            border-radius: 20px;
+            margin-left: 8px;
             vertical-align: middle;
+            letter-spacing: 0.05em;
         }
+
+        /* Status Dots */
         .status-dot {
-            width: 10px;
-            height: 10px;
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
             display: inline-block;
             margin-right: 8px;
         }
-        .status-dot-pending { background-color: #ef4444; }
-        .status-dot-complete { background-color: #22c55e; }
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
+        .status-dot-pending {
+            background-color: var(--danger);
         }
+        .status-dot-complete {
+            background-color: var(--success);
+        }
+
+        /* Skeleton */
         .skeleton-cell div {
-            height: 1.25rem;
-            background-color: #e2e8f0;
-            border-radius: 0.25rem;
-            animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+            height: 1rem;
+            background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%);
+            background-size: 200% 100%;
+            border-radius: 6px;
+            animation: shimmer 1.8s infinite;
         }
-        
+
+        /* Section Headers */
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            padding-bottom: 12px;
+            margin-bottom: 16px;
+            border-bottom: 1px solid var(--border-color);
+            position: relative;
+        }
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            width: 40px;
+            height: 2px;
+            background: var(--gradient-1);
+            border-radius: 2px;
+        }
+
+        /* Fieldset / Form Sections */
+        fieldset {
+            border: none;
+            padding: 0;
+        }
+        fieldset legend {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--accent-primary);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+            width: 100%;
+            text-transform: none;
+            letter-spacing: 0;
+        }
+
+        /* Tabs */
+        .tab-btn {
+            padding: 12px 20px;
+            font-weight: 600;
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            border-bottom: 2px solid transparent;
+            background: none;
+            cursor: pointer;
+            border-top: none;
+            border-left: none;
+            border-right: none;
+            transition: var(--transition);
+        }
+        .tab-btn.active {
+            color: var(--accent-primary);
+            border-bottom-color: var(--accent-primary);
+        }
+        .tab-btn:hover:not(.active) {
+            color: var(--text-secondary);
+        }
+
+        /* Notification Toast */
+        #notification-toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            padding: 14px 24px;
+            border-radius: var(--radius-sm);
+            font-weight: 600;
+            font-size: 0.875rem;
+            z-index: 100;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+            animation: slideDown 0.3s ease;
+        }
+        #notification-toast[data-show="false"] { display: none; }
+        #notification-toast[data-show="true"] { display: block; }
+        #notification-toast[data-type="success"] {
+            background: #059669;
+            color: white;
+        }
+        #notification-toast[data-type="error"] {
+            background: #dc2626;
+            color: white;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+            padding: 16px;
+        }
+        .modal-content {
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 32px;
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+            animation: fadeInUp 0.3s ease;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hide-mobile { display: none !important; }
+            .student-table th, .student-table td {
+                padding: 10px 12px;
+                font-size: 0.8rem;
+            }
+        }
+
         /* Print Styles */
         @media print {
-            body { background-color: #fff !important; }
+            body { background-color: #fff !important; color: #000 !important; }
             .no-print { display: none !important; }
             body > * { display: none !important; }
             .max-w-7xl {
@@ -136,7 +454,7 @@
             #profile-content > div:not(:first-child) h3 { page-break-before: auto; }
             .hudawi-badge {
                 border: 1px solid #000 !important; padding: 2px 8px !important; font-size: 10pt !important;
-                font-weight: bold !important; color: #000 !important; vertical-align: baseline; margin-left: 1rem;
+                font-weight: bold !important; color: #000 !important; background: none !important; vertical-align: baseline; margin-left: 1rem;
             }
             dl {
                 border-top: 1px solid #ccc; display: grid;
@@ -152,134 +470,145 @@
         }
     </style>
 </head>
-<body class="antialiased text-gray-800 show-loading">
+<body class="show-loading">
 
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <header id="app-header" class="flex items-center justify-between mb-8 pb-4 border-b no-print">
+    <div style="max-width: 1200px; margin: 0 auto; padding: 24px 20px;">
+        <header id="app-header" class="no-print" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 32px; padding-bottom: 20px; border-bottom: 1px solid var(--border-color);">
             <div>
-                <h1 class="text-3xl font-bold text-gray-900">Students Register</h1>
-                <p class="text-gray-500 mt-1">Darunnajath Islamic Complex, Vallappuzha</p>
+                <h1 style="font-size: 1.75rem; font-weight: 800; color: var(--accent-primary);">Students Register</h1>
+                <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 4px;">Darunnajath Islamic Complex, Vallappuzha</p>
             </div>
             <div id="header-controls"></div>
         </header>
 
-        <div id="loading-view" class="page-view text-center py-20">
-            <h2 class="text-xl font-semibold text-gray-600">Connecting...</h2>
-            <p class="text-gray-500">Loading student portal.</p>
+        <div id="loading-view" class="page-view" style="text-align: center; padding: 80px 20px;">
+            <div style="display: inline-block; width: 40px; height: 40px; border: 3px solid var(--border-color); border-top-color: var(--accent-primary); border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 20px;"></div>
+            <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
+            <h2 style="font-size: 1.1rem; font-weight: 600; color: var(--text-secondary);">Connecting...</h2>
+            <p style="color: var(--text-muted); font-size: 0.85rem;">Loading student portal.</p>
         </div>
 
         <div id="login-view" class="page-view">
-            <div class="max-w-md mx-auto bg-white p-8 border border-gray-200 rounded-lg shadow-sm">
-                <h2 class="text-2xl font-bold text-center mb-6">Portal Login</h2>
-                <form id="login-form" class="space-y-4">
-                    <div>
-                        <label for="login-input" class="block text-sm font-medium text-gray-700">Admission Number (or Admin Password)</label>
-                        <input type="text" id="login-input" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2">
+            <div style="max-width: 420px; margin: 60px auto;" class="glass-card" >
+                <div style="padding: 40px;">
+                    <div style="text-align: center; margin-bottom: 32px;">
+                        <div style="width: 56px; height: 56px; background: var(--accent-primary); border-radius: 14px; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 16px;">
+                            <svg width="28" height="28" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4M10 17l5-5-5-5M15 12H3"/></svg>
+                        </div>
+                        <h2 style="font-size: 1.5rem; font-weight: 800; color: var(--text-primary);">Portal Login</h2>
+                        <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 6px;">Enter your admission number to continue</p>
                     </div>
-                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-md">
-                        Login
-                    </button>
-                    <p id="login-error" class="text-sm text-red-600 text-center"></p>
-                </form>
+                    <form id="login-form" style="display: flex; flex-direction: column; gap: 16px;">
+                        <div>
+                            <label for="login-input">Admission Number (or Admin Password)</label>
+                            <input type="text" id="login-input" required placeholder="Enter your admission number...">
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 14px; font-size: 0.95rem;">
+                            Login
+                        </button>
+                        <p id="login-error" style="font-size: 0.85rem; color: var(--danger); text-align: center;"></p>
+                    </form>
+                </div>
             </div>
         </div>
 
         <div id="admin-dashboard-view" class="page-view">
-            <div class="flex flex-col md:flex-row items-center gap-4 mb-6 no-print">
-                <input type="text" id="search-bar" placeholder="Search by any detail..." class="block w-full border border-gray-300 rounded-md p-3 shadow-sm focus:ring-2 focus:ring-blue-500">
-                <select id="batch-filter" class="block w-full md:w-56 border border-gray-300 rounded-md p-3 shadow-sm focus:ring-2 focus:ring-blue-500">
+            <div class="no-print" style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-bottom: 24px;">
+                <input type="text" id="search-bar" placeholder="🔍  Search by any detail..." style="flex: 1; min-width: 200px;">
+                <select id="batch-filter" style="width: 180px;">
                     <option value="">Filter by Batch</option>
                 </select>
-                <select id="status-filter" class="block w-full md:w-56 border border-gray-300 rounded-md p-3 shadow-sm focus:ring-2 focus:ring-blue-500">
+                <select id="status-filter" style="width: 180px;">
                     <option value="">Filter by Status</option>
                     <option value="complete">Complete</option>
                     <option value="pending">Pending</option>
                 </select>
             </div>
-            <main id="student-list-container" class="bg-white border border-gray-200 rounded-lg overflow-x-auto">
-                <table class="student-table w-full">
+            <main id="student-list-container" class="glass-card" style="overflow-x: auto;">
+                <table class="student-table">
                     <thead>
                         <tr>
                             <th>Status</th>
                             <th>Name</th>
                             <th>Admission No.</th>
                             <th>Batch</th>
-                            <th>Phone</th>
-                            <th>Location</th>
+                            <th class="hide-mobile">Phone</th>
+                            <th class="hide-mobile">Location</th>
                         </tr>
                     </thead>
                     <tbody id="student-list-body" style="display: none;"></tbody>
                     <tbody id="skeleton-loader-body"></tbody>
                 </table>
             </main>
-            <div id="load-more-container" class="text-center py-6 no-print hidden">
-                <button id="load-more-btn" class="bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold py-2 px-6 rounded-md shadow-sm">
+            <div id="load-more-container" class="no-print hidden" style="text-align: center; padding: 24px;">
+                <button id="load-more-btn" class="btn btn-secondary">
                     Load More Students
                 </button>
             </div>
-            <div id="no-results" class="hidden text-center py-16">
-                <h3 class="text-xl font-semibold text-gray-500">No students found.</h3>
-                <p class="text-gray-400">Try adjusting your search filters.</p>
+            <div id="no-results" class="hidden" style="text-align: center; padding: 64px 20px;">
+                <svg width="48" height="48" fill="none" stroke="var(--text-muted)" stroke-width="1.5" viewBox="0 0 24 24" style="margin: 0 auto 16px;"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+                <h3 style="font-size: 1.1rem; font-weight: 600; color: var(--text-secondary);">No students found.</h3>
+                <p style="color: var(--text-muted); font-size: 0.85rem;">Try adjusting your search filters.</p>
             </div>
         </div>
 
         <div id="student-dashboard-view" class="page-view"></div>
 
-        <!-- NEW: Redesigned Bulk Upload Page -->
+        <!-- Bulk Upload Page -->
         <div id="bulk-upload-view" class="page-view">
-            <div class="bg-white p-8 border border-gray-200 rounded-lg">
-                <div class="flex items-center justify-between pb-4 border-b mb-6">
-                    <h2 class="text-2xl font-bold">Data Management</h2>
-                    <button id="back-to-list-btn-from-bulk" class="text-gray-600 hover:text-gray-900 font-semibold">CANCEL</button>
+            <div class="glass-card" style="padding: 32px;">
+                <div style="display: flex; align-items: center; justify-content: space-between; padding-bottom: 16px; border-bottom: 1px solid var(--border-color); margin-bottom: 24px;">
+                    <h2 style="font-size: 1.4rem; font-weight: 800; color: var(--text-primary);">Data Management</h2>
+                    <button id="back-to-list-btn-from-bulk" class="btn btn-ghost">CANCEL</button>
                 </div>
                 
                 <!-- Tab Headers -->
-                <div class="border-b border-gray-200">
-                    <nav class="-mb-px flex space-x-8" aria-label="Tabs">
-                        <button id="tab-btn-add" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-blue-500 text-blue-600" aria-current="page">
+                <div style="border-bottom: 1px solid var(--border-color); margin-bottom: 24px;">
+                    <nav style="display: flex; gap: 0;">
+                        <button id="tab-btn-add" class="tab-btn active">
                             Bulk Add New Students
                         </button>
-                        <button id="tab-btn-update" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                        <button id="tab-btn-update" class="tab-btn">
                             Bulk Update Existing Students
                         </button>
                     </nav>
                 </div>
 
                 <!-- Tab 1: Add New Students -->
-                <div id="tab-content-add" class="space-y-4 pt-6">
-                    <p class="text-gray-600">
+                <div id="tab-content-add" style="display: flex; flex-direction: column; gap: 16px;">
+                    <p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;">
                         Upload an Excel file with the initial list of students. This is only for adding new students who have not yet registered.
                         <br>
-                        Your file <strong>MUST</strong> have columns for <strong>Full Name</strong> and <strong>Admission No</strong>.
+                        Your file <strong style="color: var(--text-primary);">MUST</strong> have columns for <strong style="color: var(--text-primary);">Full Name</strong> and <strong style="color: var(--text-primary);">Admission No</strong>.
                     </p>
-                    <button id="download-template-btn-add" class="inline-flex items-center gap-2 bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded-md">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
+                    <button id="download-template-btn-add" class="btn btn-secondary" style="align-self: flex-start;">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
                         Download 'Add' Template
                     </button>
-                    <div class="mt-8 pt-6 border-t">
-                        <label for="excel-file-input-add" class="block text-sm font-medium text-gray-700 mb-2">Upload 'Add' File</label>
-                        <input type="file" id="excel-file-input-add" accept=".xlsx, .xls" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"/>
-                        <button id="upload-data-btn-add" class="mt-4 w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-md disabled:bg-gray-400" disabled>
+                    <div style="margin-top: 16px; padding-top: 20px; border-top: 1px solid var(--border-color);">
+                        <label for="excel-file-input-add">Upload 'Add' File</label>
+                        <input type="file" id="excel-file-input-add" accept=".xlsx, .xls"/>
+                        <button id="upload-data-btn-add" class="btn btn-success" style="width: 100%; justify-content: center; margin-top: 16px; padding: 14px;" disabled>
                             Upload New Students
                         </button>
                     </div>
                 </div>
 
                 <!-- Tab 2: Update Existing Students -->
-                <div id="tab-content-update" class="space-y-4 pt-6 hidden">
-                    <p class="text-gray-600">
-                        Upload an Excel file to update existing student records. The system will match students using the <strong>admissionNo</strong> column.
+                <div id="tab-content-update" class="hidden" style="display: none; flex-direction: column; gap: 16px;">
+                    <p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;">
+                        Upload an Excel file to update existing student records. The system will match students using the <strong style="color: var(--text-primary);">admissionNo</strong> column.
                         <br>
                         Only the columns you include in your file will be updated. Blank cells will be ignored.
                     </p>
-                    <button id="download-template-btn-update" class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
+                    <button id="download-template-btn-update" class="btn btn-primary" style="align-self: flex-start;">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
                         Download 'Update' Template (Blank)
                     </button>
-                    <div class="mt-8 pt-6 border-t">
-                        <label for="excel-file-input-update" class="block text-sm font-medium text-gray-700 mb-2">Upload 'Update' File</label>
-                        <input type="file" id="excel-file-input-update" accept=".xlsx, .xls" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"/>
-                        <button id="upload-data-btn-update" class="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-md disabled:bg-gray-400" disabled>
+                    <div style="margin-top: 16px; padding-top: 20px; border-top: 1px solid var(--border-color);">
+                        <label for="excel-file-input-update">Upload 'Update' File</label>
+                        <input type="file" id="excel-file-input-update" accept=".xlsx, .xls"/>
+                        <button id="upload-data-btn-update" class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 16px; padding: 14px;" disabled>
                             Upload Student Updates
                         </button>
                     </div>
@@ -292,17 +621,17 @@
         <div id="profile-view" class="page-view"></div>
 
         <div id="report-view" class="page-view">
-            <div class="bg-white p-8 border border-gray-200 rounded-lg space-y-8">
-                <div>
-                    <h2 class="text-2xl font-bold mb-4">Submission Summary</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="summary-cards">
+            <div class="glass-card" style="padding: 32px;">
+                <div style="margin-bottom: 32px;">
+                    <h2 style="font-size: 1.4rem; font-weight: 800; color: var(--text-primary); margin-bottom: 16px;">Submission Summary</h2>
+                    <div id="summary-cards" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
                         <!-- Summary cards will be injected here -->
                     </div>
                 </div>
                 <div>
-                    <h2 class="text-2xl font-bold mb-4">Batch-wise Report</h2>
-                    <div class="overflow-x-auto border border-gray-200 rounded-lg">
-                        <table class="student-table w-full">
+                    <h2 style="font-size: 1.4rem; font-weight: 800; color: var(--text-primary); margin-bottom: 16px;">Batch-wise Report</h2>
+                    <div style="overflow-x: auto; border: 1px solid var(--border-color); border-radius: var(--radius-sm);">
+                        <table class="student-table">
                             <thead>
                                 <tr>
                                     <th>Batch</th>
@@ -322,23 +651,23 @@
         </div>
 
         <div id="export-view" class="page-view">
-            <div class="bg-white p-8 border border-gray-200 rounded-lg space-y-8">
-                <div>
-                    <h2 class="text-2xl font-bold mb-4">Export All Student Data</h2>
-                    <p class="text-gray-600 mb-4">Download a single Excel file containing all data for every student in the register.</p>
-                    <button id="export-all-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-5 rounded-md shadow-sm">
+            <div class="glass-card" style="padding: 32px;">
+                <div style="margin-bottom: 32px;">
+                    <h2 style="font-size: 1.4rem; font-weight: 800; color: var(--text-primary); margin-bottom: 8px;">Export All Student Data</h2>
+                    <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 16px;">Download a single Excel file containing all data for every student in the register.</p>
+                    <button id="export-all-btn" class="btn btn-primary">
                         Export All Students
                     </button>
                 </div>
                 
-                <div class="border-t pt-8">
-                    <h2 class="text-2xl font-bold mb-4">Export by Batch</h2>
-                    <p class="text-gray-600 mb-4">Select a batch to download a file containing only students from that group.</p>
-                    <div class="flex items-center gap-4">
-                        <select id="export-batch-select" class="block w-full md:w-64 border border-gray-300 rounded-md p-3 shadow-sm focus:ring-2 focus:ring-blue-500">
+                <div style="border-top: 1px solid var(--border-color); padding-top: 32px;">
+                    <h2 style="font-size: 1.4rem; font-weight: 800; color: var(--text-primary); margin-bottom: 8px;">Export by Batch</h2>
+                    <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 16px;">Select a batch to download a file containing only students from that group.</p>
+                    <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                        <select id="export-batch-select" style="width: 240px;">
                             <option value="">Select a batch...</option>
                         </select>
-                        <button id="export-batch-btn" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-5 rounded-md shadow-sm">
+                        <button id="export-batch-btn" class="btn btn-success">
                             Export Selected Batch
                         </button>
                     </div>
@@ -349,17 +678,18 @@
 
     </div>
 
-    <div id="notification-toast" class="fixed bottom-5 right-5 bg-gray-800 text-white py-3 px-6 rounded-lg shadow-lg hidden no-print data-[show=true]:block data-[type=success]:bg-green-600 data-[type=error]:bg-red-600" data-show="false" data-type="success">
+    <div id="notification-toast" class="no-print" data-show="false" data-type="success">
         <p id="notification-message"></p>
     </div>
 
-    <div id="delete-confirm-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50 no-print">
-        <div class="bg-white rounded-lg shadow-xl w-full max-w-sm p-6 text-center">
-            <h3 class="text-lg font-semibold text-gray-900">Are you sure?</h3>
-            <p class="text-gray-500 mt-2">This will permanently delete the student record.</p>
-            <div class="mt-6 flex justify-center gap-4">
-                <button id="cancel-delete-btn" class="px-6 py-2 bg-gray-100 text-gray-700 rounded-md font-semibold hover:bg-gray-200">Cancel</button>
-                <button id="confirm-delete-btn" class="px-6 py-2 bg-red-600 text-white rounded-md font-semibold hover:bg-red-700">Delete</button>
+    <div id="delete-confirm-modal" class="modal-overlay hidden no-print">
+        <div class="modal-content">
+            <svg width="48" height="48" fill="none" stroke="var(--danger)" stroke-width="1.5" viewBox="0 0 24 24" style="margin: 0 auto 16px;"><path d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/></svg>
+            <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--text-primary); margin-bottom: 8px;">Are you sure?</h3>
+            <p style="color: var(--text-secondary); font-size: 0.9rem;">This will permanently delete the student record.</p>
+            <div style="margin-top: 24px; display: flex; justify-content: center; gap: 12px;">
+                <button id="cancel-delete-btn" class="btn btn-secondary">Cancel</button>
+                <button id="confirm-delete-btn" class="btn btn-danger">Delete</button>
             </div>
         </div>
     </div>
@@ -426,22 +756,23 @@
             {label: 'At Own Home', id: 'atOwnHome', type: 'checkbox'},
             {legend: 'Educational Information'},
             {label: 'Email', id: 'email', type: 'email'}, 
-            {label: 'Admission No.', id: 'admissionNo', disabled: true}, // 'disabled' means it's for display, not for update
+            {label: 'Admission No.', id: 'admissionNo', disabled: true},
             {label: 'SSLC Holder', id: 'sslc', type: 'checkbox'}, {label: 'Is Hudawi', id: 'isHudawi', type: 'checkbox'},
             {label: 'Batch No.', id: 'batchNo'},
-            {label: 'Plus Two (Subject)', id: 'plusTwo'}, 
             {label: 'External Degrees (One per line)', id: 'externalDegrees', type: 'textarea'},
-            {label: 'Darul Huda Degrees (One per line)', id: 'dhDegrees', type: 'textarea'},
             {label: 'External PGs (One per line)', id: 'externalPGs', type: 'textarea'},
             {label: 'Darul Huda PGs (One per line)', id: 'dhPGs', type: 'textarea'},
             {label: 'Other Higher Education (One per line)', id: 'otherHigherEd', type: 'textarea'},
-            {label: 'Job', id: 'job'}, {label: 'Current Job', id: 'currentJob'}, {label: 'Previous Job', id: 'previousJob'},
+            {label: 'Higher Education Details (One per line)', id: 'higherEducation', type: 'textarea'},
+            {legend: 'Professional Information'},
+            {label: 'Current Job', id: 'currentJob'}, 
+            {label: 'Previous Jobs (One per line. Must include institutions name)', id: 'previousJob', type: 'textarea'},
             {legend: 'Family Details'},
             {label: 'Father\'s Name', id: 'fatherName'}, 
             {label: 'Father\'s Phone', id: 'fatherPhone', type: 'tel'},
             {label: 'Mother\'s Name', id: 'motherName'},
             {label: 'Marital Status', id: 'maritalStatus', type: 'select', options: ['Single', 'Married']},
-            {label: 'Wife\'s Name', id: 'wifeName', conditional: true}, {label: 'Children', id: 'children', type: 'number', conditional: true},
+            {label: 'Children', id: 'children', type: 'number', conditional: true},
             {label: 'Boys', id: 'boys', type: 'number', conditional: true}, {label: 'Girls', id: 'girls', type: 'number', conditional: true}
         ];
 
@@ -722,7 +1053,7 @@
 
         const renderStudentDashboard = (studentData) => {
             if (!studentData) {
-                document.getElementById('student-dashboard-view').innerHTML = '<p class="text-center text-red-600">Could not load your profile.</p>';
+                document.getElementById('student-dashboard-view').innerHTML = '<p style="text-align:center; color: var(--danger);">Could not load your profile.</p>';
                 return;
             }
             const formHTML = buildFormHtml('student-dashboard-view', studentData.id, studentData, true);
@@ -741,45 +1072,47 @@
             const student = allStudentsCache[studentId];
             const profileView = document.getElementById('profile-view');
             if (!student) { 
-                profileView.innerHTML = '<p class="text-center text-gray-500">Loading profile...</p>';
+                profileView.innerHTML = '<p style="text-align:center; color: var(--text-muted);">Loading profile...</p>';
                 return; 
             }
             
             const detailItem = (label, value) => {
                 if (!value && typeof value !== 'boolean') return '';
                 value = (typeof value === 'boolean') ? (value ? 'Yes' : 'No') : value;
-                return `<div class="py-3 sm:grid sm:grid-cols-3 sm:gap-4 print-item"><dt class="text-sm font-medium text-gray-500">${label}</dt><dd class="mt-1 text-base text-gray-900 sm:mt-0 sm:col-span-2">${value}</dd></div>`;
+                return `<div style="padding: 12px 0; display: grid; grid-template-columns: 1fr 2fr; gap: 12px;" class="print-item"><dt style="font-size: 0.8rem; font-weight: 500; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">${label}</dt><dd style="font-size: 0.95rem; color: var(--text-primary);">${value}</dd></div>`;
             };
             const detailListItem = (label, value) => {
                 if (!value) return '';
                 const items = String(value).split('\n').map(s => s.trim()).filter(Boolean); 
                 if (items.length === 0) return '';
-                const listHTML = '<ul class="list-disc ml-5 space-y-1">' + items.map(item => `<li>${item}</li>`).join('') + '</ul>';
-                return `<div class="py-3 sm:grid sm:grid-cols-3 sm:gap-4 print-list-item"><dt class="text-sm font-medium text-gray-500">${label}</dt><dd class="mt-1 text-base text-gray-900 sm:mt-0 sm:col-span-2">${listHTML}</dd></div>`;
+                const listHTML = '<ul style="list-style: disc; margin-left: 20px; display: flex; flex-direction: column; gap: 4px;">' + items.map(item => `<li style="color: var(--text-primary);">${item}</li>`).join('') + '</ul>';
+                return `<div style="padding: 12px 0; display: grid; grid-template-columns: 1fr 2fr; gap: 12px;" class="print-list-item"><dt style="font-size: 0.8rem; font-weight: 500; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">${label}</dt><dd style="font-size: 0.95rem; color: var(--text-primary);">${listHTML}</dd></div>`;
             };
 
             const firstDhPg = student.dhPGs ? String(student.dhPGs).split('\n')[0] : null;
-            const firstDhDegree = student.dhDegrees ? String(student.dhDegrees).split('\n')[0] : null;
-            const subtitle = firstDhPg || firstDhDegree || 'Alumni';
+            const subtitle = firstDhPg || student.currentJob || 'Alumni';
             const hudawiBadge = student.isHudawi ? '<span class="hudawi-badge">HUDAWI</span>' : '';
             
             profileView.innerHTML = `
-                <div class="no-print pb-6 mb-6 border-b flex justify-between items-center">
-                    <button id="back-to-list-btn" class="text-blue-600 hover:underline font-semibold">&larr; Back to List</button>
-                    <div class="space-x-3">
-                        <button id="profile-print-btn" class="bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-md">Print</button>
-                        <button id="profile-edit-btn" class="bg-blue-600 text-white font-semibold py-2 px-4 rounded-md">Edit</button>
-                        <button id="profile-delete-btn" class="bg-red-600 text-white font-semibold py-2 px-4 rounded-md">Delete</button>
+                <div class="glass-card" style="padding: 32px;">
+                <div class="no-print" style="padding-bottom: 20px; margin-bottom: 24px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+                    <button id="back-to-list-btn" class="btn btn-ghost">&larr; Back to List</button>
+                    <div style="display: flex; gap: 8px;">
+                        <button id="profile-print-btn" class="btn btn-secondary">Print</button>
+                        <button id="profile-edit-btn" class="btn btn-primary">Edit</button>
+                        <button id="profile-delete-btn" class="btn btn-danger">Delete</button>
                     </div>
                 </div>
                 <div id="profile-content">
-                    <div class="flex items-center"><h2 class="text-3xl font-bold text-gray-900">${student.fullName}</h2>${hudawiBadge}</div>
-                    <p class="text-lg text-blue-600">${subtitle}</p>
-                    <div class="mt-8 space-y-8">
-                        <div><h3 class="text-xl font-semibold border-b pb-2 mb-3">Personal Information</h3><dl class="divide-y divide-gray-200">${detailItem('Date of Birth', student.dob)}${detailItem('Birth Place', student.birthPlace)}${detailItem('Phone', student.phone)}${detailItem('WhatsApp', student.whatsapp)}${detailItem('Email', student.email)}${detailItem('Address', student.address)}${detailItem('Location', student.location)}${detailItem('District', student.district)}${detailItem('Mahallu Masjid', student.mahallu)}${detailItem('At Own Home', student.atOwnHome)}</dl></div>
-                        <div><h3 class="text-xl font-semibold border-b pb-2 mb-3">Educational Details</h3><dl class="divide-y divide-gray-200">${detailItem('SSLC Holder', student.sslc)}${detailItem('Is Hudawi', student.isHudawi)}${detailItem('Admission No.', student.admissionNo)}${detailItem('Batch No.', student.batchNo)}${detailItem('Plus Two', student.plusTwo)}${detailListItem('External Degrees', student.externalDegrees)}${detailListItem('Darul Huda Degrees', student.dhDegrees)}${detailListItem('External PGs', student.externalPGs)}${detailListItem('Darul Huda PGs', student.dhPGs)}${detailListItem('Other Higher Education', student.otherHigherEd)}${detailItem('Job', student.job)}${detailItem('Current Job', student.currentJob)}${detailItem('Previous Job', student.previousJob)}</dl></div>
-                        <div><h3 class="text-xl font-semibold border-b pb-2 mb-3">Family Details</h3><dl class="divide-y divide-gray-200">${detailItem('Father\'s Name', student.fatherName)}${detailItem('Father\'s Phone', student.fatherPhone)}${detailItem('Mother\'s Name', student.motherName)}${detailItem('Marital Status', student.maritalStatus)}${student.maritalStatus === 'Married' ? `${detailItem('Wife\'s Name', student.wifeName)}${detailItem('Total Children', student.children)}${detailItem('Boys', student.boys)}${detailItem('Girls', student.girls)}` : ''}</dl></div>
+                    <div style="display: flex; align-items: center;"><h2 style="font-size: 1.75rem; font-weight: 800; color: var(--text-primary);">${student.fullName}</h2>${hudawiBadge}</div>
+                    <p style="font-size: 1rem; color: var(--accent-primary); margin-top: 4px;">${subtitle}</p>
+                    <div style="margin-top: 32px; display: flex; flex-direction: column; gap: 32px;">
+                        <div><h3 class="section-title">Personal Information</h3><dl>${detailItem('Date of Birth', student.dob)}${detailItem('Birth Place', student.birthPlace)}${detailItem('Phone', student.phone)}${detailItem('WhatsApp', student.whatsapp)}${detailItem('Email', student.email)}${detailItem('Address', student.address)}${detailItem('Location', student.location)}${detailItem('District', student.district)}${detailItem('Mahallu Masjid', student.mahallu)}${detailItem('At Own Home', student.atOwnHome)}</dl></div>
+                        <div><h3 class="section-title">Educational Details</h3><dl>${detailItem('SSLC Holder', student.sslc)}${detailItem('Is Hudawi', student.isHudawi)}${detailItem('Admission No.', student.admissionNo)}${detailItem('Batch No.', student.batchNo)}${detailListItem('External Degrees', student.externalDegrees)}${detailListItem('External PGs', student.externalPGs)}${detailListItem('Darul Huda PGs', student.dhPGs)}${detailListItem('Other Higher Education', student.otherHigherEd)}${detailListItem('Higher Education Details', student.higherEducation)}</dl></div>
+                        <div><h3 class="section-title">Professional Information</h3><dl>${detailItem('Current Job', student.currentJob)}${detailListItem('Previous Jobs', student.previousJob)}</dl></div>
+                        <div><h3 class="section-title">Family Details</h3><dl>${detailItem('Father\'s Name', student.fatherName)}${detailItem('Father\'s Phone', student.fatherPhone)}${detailItem('Mother\'s Name', student.motherName)}${detailItem('Marital Status', student.maritalStatus)}${student.maritalStatus === 'Married' ? `${detailItem('Total Children', student.children)}${detailItem('Boys', student.boys)}${detailItem('Girls', student.girls)}` : ''}</dl></div>
                     </div>
+                </div>
                 </div>`;
 
             document.getElementById('back-to-list-btn').onclick = () => { window.location.hash = '#/admin-dashboard'; };
@@ -800,19 +1133,15 @@
 
             const showTab = (tabName) => {
                 if (tabName === 'add') {
-                    tabContentAdd.classList.remove('hidden');
-                    tabContentUpdate.classList.add('hidden');
-                    tabBtnAdd.classList.add('border-blue-500', 'text-blue-600');
-                    tabBtnAdd.classList.remove('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
-                    tabBtnUpdate.classList.add('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
-                    tabBtnUpdate.classList.remove('border-blue-500', 'text-blue-600');
+                    tabContentAdd.style.display = 'flex';
+                    tabContentUpdate.style.display = 'none';
+                    tabBtnAdd.classList.add('active');
+                    tabBtnUpdate.classList.remove('active');
                 } else {
-                    tabContentAdd.classList.add('hidden');
-                    tabContentUpdate.classList.remove('hidden');
-                    tabBtnUpdate.classList.add('border-blue-500', 'text-blue-600');
-                    tabBtnUpdate.classList.remove('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
-                    tabBtnAdd.classList.add('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
-                    tabBtnAdd.classList.remove('border-blue-500', 'text-blue-600');
+                    tabContentAdd.style.display = 'none';
+                    tabContentUpdate.style.display = 'flex';
+                    tabBtnUpdate.classList.add('active');
+                    tabBtnAdd.classList.remove('active');
                 }
             };
             
@@ -1177,17 +1506,17 @@
             // 1. Render Summary Cards
             const summaryCardsEl = document.getElementById('summary-cards');
             summaryCardsEl.innerHTML = `
-                <div class="bg-blue-50 p-6 rounded-lg shadow-sm">
-                    <div class="text-sm font-medium text-blue-600">Total Students</div>
-                    <div class="text-3xl font-bold text-blue-900">${total}</div>
+                <div style="background: #eef2ff; border: 1px solid #c7d2fe; padding: 24px; border-radius: var(--radius-sm);">
+                    <div style="font-size: 0.8rem; font-weight: 600; color: var(--accent-primary); text-transform: uppercase; letter-spacing: 0.05em;">Total Students</div>
+                    <div style="font-size: 2rem; font-weight: 800; color: var(--text-primary); margin-top: 4px;">${total}</div>
                 </div>
-                <div class="bg-green-50 p-6 rounded-lg shadow-sm">
-                    <div class="text-sm font-medium text-green-600">Completed</div>
-                    <div class="text-3xl font-bold text-green-900">${complete}</div>
+                <div style="background: var(--success-bg); border: 1px solid #a7f3d0; padding: 24px; border-radius: var(--radius-sm);">
+                    <div style="font-size: 0.8rem; font-weight: 600; color: var(--success); text-transform: uppercase; letter-spacing: 0.05em;">Completed</div>
+                    <div style="font-size: 2rem; font-weight: 800; color: var(--text-primary); margin-top: 4px;">${complete}</div>
                 </div>
-                <div class="bg-red-50 p-6 rounded-lg shadow-sm">
-                    <div class="text-sm font-medium text-red-600">Pending</div>
-                    <div class="text-3xl font-bold text-red-900">${pending}</div>
+                <div style="background: var(--danger-bg); border: 1px solid #fecaca; padding: 24px; border-radius: var(--radius-sm);">
+                    <div style="font-size: 0.8rem; font-weight: 600; color: var(--danger); text-transform: uppercase; letter-spacing: 0.05em;">Pending</div>
+                    <div style="font-size: 2rem; font-weight: 800; color: var(--text-primary); margin-top: 4px;">${pending}</div>
                 </div>
             `;
 
@@ -1201,15 +1530,15 @@
                 const batchPercent = data.total > 0 ? ((data.complete / data.total) * 100).toFixed(1) : 0;
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td class="font-medium">${batchNo}</td>
-                    <td class="text-green-600 font-medium">${data.complete}</td>
-                    <td class="text-red-600 font-medium">${data.pending}</td>
-                    <td class="font-bold">${data.total}</td>
+                    <td style="font-weight: 600;">${batchNo}</td>
+                    <td style="color: var(--success); font-weight: 600;">${data.complete}</td>
+                    <td style="color: var(--danger); font-weight: 600;">${data.pending}</td>
+                    <td style="font-weight: 700;">${data.total}</td>
                     <td>
-                        <div class="w-full bg-gray-200 rounded-full h-2.5">
-                            <div class="bg-blue-600 h-2.5 rounded-full" style="width: ${batchPercent}%"></div>
+                        <div style="width: 100%; background: #e5e7eb; border-radius: 9999px; height: 6px; overflow: hidden;">
+                            <div style="background: var(--accent-primary); height: 6px; border-radius: 9999px; width: ${batchPercent}%; transition: width 0.5s ease;"></div>
                         </div>
-                        <span class="text-sm text-gray-500">${batchPercent}%</span>
+                        <span style="font-size: 0.8rem; color: var(--text-muted);">${batchPercent}%</span>
                     </td>
                 `;
                 batchReportBodyEl.appendChild(row);
@@ -1304,35 +1633,35 @@
                 formTitle = studentId ? 'Edit Student Record' : 'Add New Student';
                 cancelHash = studentId ? `#/profile/${studentId}` : '#/admin-dashboard';
             }
-            const cancelBtnHtml = cancelHash ? `<a href="${cancelHash}" class="text-gray-600 hover:text-gray-900 font-semibold">CANCEL</a>` : '';
+            const cancelBtnHtml = cancelHash ? `<a href="${cancelHash}" class="btn btn-ghost" style="text-decoration: none;">CANCEL</a>` : '';
             
             let formHTML = `
-                <div class="bg-white p-8 border border-gray-200 rounded-lg">
-                    <div class="flex items-center justify-between pb-4 border-b mb-6">
-                        <h2 class="text-2xl font-bold">${formTitle}</h2>
+                <div class="glass-card" style="padding: 32px;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; padding-bottom: 16px; border-bottom: 1px solid var(--border-color); margin-bottom: 24px;">
+                        <h2 style="font-size: 1.4rem; font-weight: 800; color: var(--text-primary);">${formTitle}</h2>
                         ${cancelBtnHtml}
                     </div>
-                    <form id="student-form-${parentId}" class="space-y-6">
+                    <form id="student-form-${parentId}" style="display: flex; flex-direction: column; gap: 20px;">
             `;
             
             formFields.forEach((f, index) => {
                 if (f.legend) {
                     if (index > 0) formHTML += `</fieldset>`;
-                    formHTML += `<fieldset class="space-y-4 pt-4"><legend class="text-lg font-semibold text-gray-800 border-b pb-2 mb-4 w-full">${f.legend}</legend>`;
+                    formHTML += `<fieldset style="display: flex; flex-direction: column; gap: 16px; padding-top: 16px;"><legend>${f.legend}</legend>`;
                 } else {
                     const isDisabled = f.disabled ? 'disabled' : '';
-                    const wrapperClass = f.conditional ? 'hidden' : '';
-                    let fieldContent = `<label for="${f.id}" class="block text-sm font-medium text-gray-700">${f.label}</label>`;
-                    if (f.type === 'textarea') fieldContent += `<textarea id="${f.id}" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2" rows="3" ${isDisabled}></textarea>`;
-                    else if (f.type === 'select') fieldContent += `<select id="${f.id}" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2" ${isDisabled}>${f.options.map(o => `<option>${o}</option>`).join('')}</select>`;
-                    else if (f.type === 'checkbox') fieldContent = `<div class="flex items-center gap-3 pt-2"><input type="checkbox" id="${f.id}" class="h-5 w-5 rounded border-gray-300 text-blue-600" ${isDisabled}><label for="${f.id}" class="text-sm font-medium text-gray-700">${f.label}</label></div>`;
-                    else fieldContent += `<input type="${f.type || 'text'}" id="${f.id}" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2" ${isDisabled}>`;
-                    formHTML += `<div id="${f.id}-wrapper" class="${wrapperClass}">${fieldContent}</div>`;
+                    const wrapperStyle = f.conditional ? 'display: none;' : '';
+                    let fieldContent = `<label for="${f.id}">${f.label}</label>`;
+                    if (f.type === 'textarea') fieldContent += `<textarea id="${f.id}" rows="3" ${isDisabled}></textarea>`;
+                    else if (f.type === 'select') fieldContent += `<select id="${f.id}" ${isDisabled}>${f.options.map(o => `<option>${o}</option>`).join('')}</select>`;
+                    else if (f.type === 'checkbox') fieldContent = `<div style="display: flex; align-items: center; gap: 10px; padding-top: 4px;"><input type="checkbox" id="${f.id}" ${isDisabled}><label for="${f.id}" style="margin-bottom: 0;">${f.label}</label></div>`;
+                    else fieldContent += `<input type="${f.type || 'text'}" id="${f.id}" ${isDisabled}>`;
+                    formHTML += `<div id="${f.id}-wrapper" style="${wrapperStyle}">${fieldContent}</div>`;
                 }
             });
             formHTML += `</fieldset></form>
-                    <div class="mt-8 pt-4 border-t">
-                        <button type="submit" form="student-form-${parentId}" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-md">
+                    <div style="margin-top: 32px; padding-top: 16px; border-top: 1px solid var(--border-color);">
+                        <button type="submit" form="student-form-${parentId}" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 14px; font-size: 0.95rem;">
                             ${studentId ? 'Update Profile' : 'Save Student'}
                         </button>
                     </div>
@@ -1349,7 +1678,7 @@
                 const toggleMarriedFields = () => {
                     if (!maritalStatusSelect) return;
                     const show = maritalStatusSelect.value === 'Married';
-                    ['wifeName', 'children', 'boys', 'girls'].forEach(id => {
+                    ['children', 'boys', 'girls'].forEach(id => {
                         const el = document.getElementById(`${id}-wrapper`);
                         if (el) el.classList.toggle('hidden', !show);
                     });
@@ -1468,7 +1797,7 @@
         const router = () => {
             window.scrollTo(0, 0);
             const [view, id] = (window.location.hash.slice(2) || '/').split('/');
-            document.body.className = 'antialiased text-gray-800'; // Reset body class
+            document.body.className = ''; // Reset body class
             
             const role = sessionStorage.getItem('appRole');
             const studentKey = sessionStorage.getItem('studentKey');
@@ -1476,22 +1805,12 @@
             if (role === 'admin') {
                 // --- ADMIN ROUTER ---
                 headerControls.innerHTML = `
-                    <div class="flex items-center space-x-2">
-                        <button id="admin-dashboard-btn" class="text-gray-700 font-semibold py-2 px-3 rounded-md hover:bg-gray-100">
-                            Dashboard
-                        </button>
-                        <button id="report-btn" class="text-gray-700 font-semibold py-2 px-3 rounded-md hover:bg-gray-100">
-                            Reports
-                        </button>
-                        <button id="export-btn" class="text-gray-700 font-semibold py-2 px-3 rounded-md hover:bg-gray-100">
-                            Export
-                        </button>
-                        <button id="bulk-upload-btn" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-md shadow-sm">
-                            Data Management
-                        </button>
-                        <button id="logout-btn" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 px-4 rounded-md">
-                            Logout
-                        </button>
+                    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                        <button id="admin-dashboard-btn" class="btn btn-ghost">Dashboard</button>
+                        <button id="report-btn" class="btn btn-ghost">Reports</button>
+                        <button id="export-btn" class="btn btn-ghost">Export</button>
+                        <button id="bulk-upload-btn" class="btn btn-success">Data Management</button>
+                        <button id="logout-btn" class="btn btn-secondary">Logout</button>
                     </div>
                 `;
                 document.getElementById('logout-btn').onclick = handleLogout;
@@ -1500,17 +1819,17 @@
                 document.getElementById('report-btn').onclick = () => window.location.hash = '#/report';
                 document.getElementById('export-btn').onclick = () => window.location.hash = '#/export';
                 
-                cleanupListeners(); // Clear any student listeners
-                attachAdminDataListener(); // Attach admin listener
+                cleanupListeners();
+                attachAdminDataListener();
 
                 switch(view) {
                     case 'profile':
                         document.body.classList.add('show-profile');
-                        document.getElementById('profile-view').innerHTML = '<p class="text-center text-gray-500">Loading profile...</p>';
+                        document.getElementById('profile-view').innerHTML = '<p style="text-align:center; color: var(--text-muted);">Loading profile...</p>';
                         break;
                     case 'admin-edit':
                         document.body.classList.add('show-form');
-                        document.getElementById('form-view').innerHTML = '<p class="text-center text-gray-500">Loading form...</p>';
+                        document.getElementById('form-view').innerHTML = '<p style="text-align:center; color: var(--text-muted);">Loading form...</p>';
                         break;
                     case 'bulk-upload':
                         document.body.classList.add('show-bulk-upload');
@@ -1518,7 +1837,7 @@
                         break;
                     case 'report':
                         document.body.classList.add('show-report');
-                        document.getElementById('summary-cards').innerHTML = '<p class="text-gray-500">Loading report...</p>';
+                        document.getElementById('summary-cards').innerHTML = '<p style="color: var(--text-muted);">Loading report...</p>';
                         document.getElementById('batch-report-body').innerHTML = '';
                         break;
                     case 'export':
@@ -1534,18 +1853,16 @@
             } else if (role === 'student' && studentKey) {
                 // --- STUDENT ROUTER ---
                 headerControls.innerHTML = `
-                    <button id="logout-btn" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 px-5 rounded-md">
-                        Logout
-                    </button>
+                    <button id="logout-btn" class="btn btn-secondary">Logout</button>
                 `;
                 document.getElementById('logout-btn').onclick = handleLogout;
 
-                cleanupListeners(); // Clear any admin listeners
-                attachStudentDataListener(studentKey); // Attach listener for THIS student
+                cleanupListeners();
+                attachStudentDataListener(studentKey);
 
                 document.body.classList.add('show-student-dashboard');
                 document.getElementById('student-dashboard-view').innerHTML = 
-                    '<p class="text-center text-gray-600">Loading your profile...</p>';
+                    '<p style="text-align:center; color: var(--text-muted);">Loading your profile...</p>';
 
                 if (view !== 'my-profile' && view !== '') {
                     window.location.hash = '#/my-profile';
@@ -1574,10 +1891,10 @@
                 const firebaseConfig = JSON.parse(firebaseConfigStr);
 
                 if (!firebaseConfig.apiKey) {
-                    document.body.className = 'antialiased text-gray-800';
+                    document.body.className = '';
                     document.getElementById('loading-view').innerHTML = `
-                        <h2 class="text-xl font-semibold text-red-600">Configuration Error</h2>
-                        <p class="text-gray-500">Firebase configuration is missing. The app cannot load.</p>`;
+                        <h2 style="font-size: 1.1rem; font-weight: 600; color: var(--danger);">Configuration Error</h2>
+                        <p style="color: var(--text-muted); font-size: 0.85rem;">Firebase configuration is missing. The app cannot load.</p>`;
                     console.error("Firebase config is missing!");
                     return;
                 }
@@ -1593,12 +1910,12 @@
                 
                 skeletonLoaderBody.innerHTML = Array(10).fill('').map(() => `
                     <tr class="no-hover">
-                        <td class="py-4 px-3"><div class="skeleton-cell" style="width: 60%;"></div></td>
-                        <td class="py-4 px-3"><div class="skeleton-cell" style="width: 80%;"></div></td>
-                        <td class="py-4 px-3"><div class="skeleton-cell" style="width: 40%;"></div></td>
-                        <td class="py-4 px-3"><div class="skeleton-cell" style="width: 40%;"></div></td>
-                        <td class="py-4 px-3"><div class="skeleton-cell" style="width: 60%;"></div></td>
-                        <td class="py-4 px-3"><div class="skeleton-cell" style="width: 70%;"></div></td>
+                        <td><div class="skeleton-cell"><div style="width: 60%;"></div></div></td>
+                        <td><div class="skeleton-cell"><div style="width: 80%;"></div></div></td>
+                        <td><div class="skeleton-cell"><div style="width: 40%;"></div></div></td>
+                        <td><div class="skeleton-cell"><div style="width: 40%;"></div></div></td>
+                        <td><div class="skeleton-cell"><div style="width: 60%;"></div></div></td>
+                        <td><div class="skeleton-cell"><div style="width: 70%;"></div></div></td>
                     </tr>
                 `).join('');
                 
@@ -1613,13 +1930,12 @@
 
             } catch (error) {
                 console.error("Initialization Failed:", error);
-                document.body.className = 'antialiased text-gray-800';
+                document.body.className = '';
                 document.getElementById('loading-view').innerHTML = `
-                    <h2 class="text-xl font-semibold text-red-600">Application Error</h2>
-                    <p class="text-gray-500">Could not initialize the application. Check the console for details.</p>`;
+                    <h2 style="font-size: 1.1rem; font-weight: 600; color: var(--danger);">Application Error</h2>
+                    <p style="color: var(--text-muted); font-size: 0.85rem;">Could not initialize the application. Check the console for details.</p>`;
             }
         });
     </script>
 </body>
 </html>
-
