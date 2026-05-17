@@ -475,7 +475,7 @@
     <div style="max-width: 1200px; margin: 0 auto; padding: 24px 20px;">
         <header id="app-header" class="no-print" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 32px; padding-bottom: 20px; border-bottom: 1px solid var(--border-color);">
             <div>
-                <h1 style="font-size: 1.75rem; font-weight: 800; color: var(--accent-primary);">Students Register</h1>
+                <h1 style="font-size: 1.75rem; font-weight: 800; color: var(--accent-primary);">Nishan Alumni Register</h1>
                 <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 4px;">Darunnajath Islamic Complex, Vallappuzha</p>
             </div>
             <div id="header-controls"></div>
@@ -750,20 +750,26 @@
         const formFields = [
             {legend: 'Personal Information'},
             {label: 'Full Name *', id: 'fullName', required: true}, {label: 'Date of Birth * (YYYY-MM-DD)', id: 'dob', type: 'date', required: true},
-            {label: 'Birth Place', id: 'birthPlace'}, {label: 'Address', id: 'address', type: 'textarea'},
+            {label: 'Address', id: 'address', type: 'textarea'},
             {label: 'Phone Number *', id: 'phone', type: 'tel', required: true}, {label: 'WhatsApp Number', id: 'whatsapp', type: 'tel'},
             {label: 'Location', id: 'location'}, {label: 'District', id: 'district'}, {label: 'Mahallu Masjid', id: 'mahallu'},
             {label: 'At Own Home', id: 'atOwnHome', type: 'checkbox'},
             {legend: 'Educational Information'},
             {label: 'Email', id: 'email', type: 'email'}, 
             {label: 'Admission No.', id: 'admissionNo', disabled: true},
-            {label: 'SSLC Holder', id: 'sslc', type: 'checkbox'}, {label: 'Is Hudawi', id: 'isHudawi', type: 'checkbox'},
+            {label: 'SSLC Holder', id: 'sslc', type: 'checkbox'},
             {label: 'Batch No.', id: 'batchNo'},
+            {legend: 'Hudawi Course Status'},
+            {label: 'Currently Student', id: 'currentlyStudent', type: 'checkbox', statusGroup: true},
+            {label: 'Course Complete', id: 'courseComplete', type: 'checkbox', statusGroup: true},
+            {label: 'Sanad Received', id: 'sanadReceived', type: 'checkbox', conditionalOn: 'courseComplete'},
+            {label: 'Dropout', id: 'dropout', type: 'checkbox', statusGroup: true},
+            {label: 'Other Sanad Received (specify)', id: 'otherSanad', conditionalOn: 'dropout'},
+            {legend: 'Higher Education'},
             {label: 'External Degrees (One per line)', id: 'externalDegrees', type: 'textarea'},
             {label: 'External PGs (One per line)', id: 'externalPGs', type: 'textarea'},
             {label: 'Darul Huda PGs (One per line)', id: 'dhPGs', type: 'textarea'},
             {label: 'Other Higher Education (One per line)', id: 'otherHigherEd', type: 'textarea'},
-            {label: 'Higher Education Details (One per line)', id: 'higherEducation', type: 'textarea'},
             {legend: 'Professional Information'},
             {label: 'Current Job', id: 'currentJob'}, 
             {label: 'Previous Jobs (One per line. Must include institutions name)', id: 'previousJob', type: 'textarea'},
@@ -958,7 +964,7 @@
                     // NEW: Check completeness status dynamically
                     const isComplete = checkDataCompleteness(student);
                     
-                    const hudawiBadge = student.isHudawi ? '<span class="hudawi-badge-s">HUDAWI</span>' : '';
+                    const hudawiBadge = student.sanadReceived ? '<span class="hudawi-badge-s">HUDAWI</span>' : '';
                     const statusClass = isComplete ? 'status-dot-complete' : 'status-dot-pending';
                     const statusText = isComplete ? 'Complete' : 'Pending';
                     const statusHtml = `<div class="flex items-center"><span class="status-dot ${statusClass}"></span><span>${statusText}</span></div>`;
@@ -1091,7 +1097,7 @@
 
             const firstDhPg = student.dhPGs ? String(student.dhPGs).split('\n')[0] : null;
             const subtitle = firstDhPg || student.currentJob || 'Alumni';
-            const hudawiBadge = student.isHudawi ? '<span class="hudawi-badge">HUDAWI</span>' : '';
+            const hudawiBadge = student.sanadReceived ? '<span class="hudawi-badge">HUDAWI</span>' : '';
             
             profileView.innerHTML = `
                 <div class="glass-card" style="padding: 32px;">
@@ -1107,8 +1113,9 @@
                     <div style="display: flex; align-items: center;"><h2 style="font-size: 1.75rem; font-weight: 800; color: var(--text-primary);">${student.fullName}</h2>${hudawiBadge}</div>
                     <p style="font-size: 1rem; color: var(--accent-primary); margin-top: 4px;">${subtitle}</p>
                     <div style="margin-top: 32px; display: flex; flex-direction: column; gap: 32px;">
-                        <div><h3 class="section-title">Personal Information</h3><dl>${detailItem('Date of Birth', student.dob)}${detailItem('Birth Place', student.birthPlace)}${detailItem('Phone', student.phone)}${detailItem('WhatsApp', student.whatsapp)}${detailItem('Email', student.email)}${detailItem('Address', student.address)}${detailItem('Location', student.location)}${detailItem('District', student.district)}${detailItem('Mahallu Masjid', student.mahallu)}${detailItem('At Own Home', student.atOwnHome)}</dl></div>
-                        <div><h3 class="section-title">Educational Details</h3><dl>${detailItem('SSLC Holder', student.sslc)}${detailItem('Is Hudawi', student.isHudawi)}${detailItem('Admission No.', student.admissionNo)}${detailItem('Batch No.', student.batchNo)}${detailListItem('External Degrees', student.externalDegrees)}${detailListItem('External PGs', student.externalPGs)}${detailListItem('Darul Huda PGs', student.dhPGs)}${detailListItem('Other Higher Education', student.otherHigherEd)}${detailListItem('Higher Education Details', student.higherEducation)}</dl></div>
+                        <div><h3 class="section-title">Personal Information</h3><dl>${detailItem('Date of Birth', student.dob)}${detailItem('Phone', student.phone)}${detailItem('WhatsApp', student.whatsapp)}${detailItem('Email', student.email)}${detailItem('Address', student.address)}${detailItem('Location', student.location)}${detailItem('District', student.district)}${detailItem('Mahallu Masjid', student.mahallu)}${detailItem('At Own Home', student.atOwnHome)}</dl></div>
+                        <div><h3 class="section-title">Educational Details</h3><dl>${detailItem('SSLC Holder', student.sslc)}${detailItem('Admission No.', student.admissionNo)}${detailItem('Batch No.', student.batchNo)}${detailListItem('External Degrees', student.externalDegrees)}${detailListItem('External PGs', student.externalPGs)}${detailListItem('Darul Huda PGs', student.dhPGs)}${detailListItem('Other Higher Education', student.otherHigherEd)}</dl></div>
+                        <div><h3 class="section-title">Hudawi Course Status</h3><dl>${detailItem('Currently Student', student.currentlyStudent)}${detailItem('Course Complete', student.courseComplete)}${detailItem('Sanad Received', student.sanadReceived)}${detailItem('Dropout', student.dropout)}${student.otherSanad ? detailItem('Other Sanad Received', student.otherSanad) : ''}</dl></div>
                         <div><h3 class="section-title">Professional Information</h3><dl>${detailItem('Current Job', student.currentJob)}${detailListItem('Previous Jobs', student.previousJob)}</dl></div>
                         <div><h3 class="section-title">Family Details</h3><dl>${detailItem('Father\'s Name', student.fatherName)}${detailItem('Father\'s Phone', student.fatherPhone)}${detailItem('Mother\'s Name', student.motherName)}${detailItem('Marital Status', student.maritalStatus)}${student.maritalStatus === 'Married' ? `${detailItem('Total Children', student.children)}${detailItem('Boys', student.boys)}${detailItem('Girls', student.girls)}` : ''}</dl></div>
                     </div>
@@ -1648,15 +1655,45 @@
                 if (f.legend) {
                     if (index > 0) formHTML += `</fieldset>`;
                     formHTML += `<fieldset style="display: flex; flex-direction: column; gap: 16px; padding-top: 16px;"><legend>${f.legend}</legend>`;
+
+                    // Inject status group container right after Hudawi Course Status legend
+                    if (f.legend === 'Hudawi Course Status') {
+                        formHTML += `<div id="student-status-group">
+                            <label style="margin-bottom: 12px; font-size: 0.8rem; font-weight: 600; color: var(--accent-primary); text-transform: uppercase; letter-spacing: 0.05em;">Student Status (select one)</label>`;
+                    }
                 } else {
                     const isDisabled = f.disabled ? 'disabled' : '';
-                    const wrapperStyle = f.conditional ? 'display: none;' : '';
-                    let fieldContent = `<label for="${f.id}">${f.label}</label>`;
-                    if (f.type === 'textarea') fieldContent += `<textarea id="${f.id}" rows="3" ${isDisabled}></textarea>`;
-                    else if (f.type === 'select') fieldContent += `<select id="${f.id}" ${isDisabled}>${f.options.map(o => `<option>${o}</option>`).join('')}</select>`;
-                    else if (f.type === 'checkbox') fieldContent = `<div style="display: flex; align-items: center; gap: 10px; padding-top: 4px;"><input type="checkbox" id="${f.id}" ${isDisabled}><label for="${f.id}" style="margin-bottom: 0;">${f.label}</label></div>`;
-                    else fieldContent += `<input type="${f.type || 'text'}" id="${f.id}" ${isDisabled}>`;
-                    formHTML += `<div id="${f.id}-wrapper" style="${wrapperStyle}">${fieldContent}</div>`;
+                    const isConditionallyHidden = (f.conditional || f.conditionalOn) ? true : false;
+                    const wrapperStyle = isConditionallyHidden ? 'display: none;' : '';
+
+                    if (f.statusGroup) {
+                        // Render inside the status group container
+                        const fieldContent = `<div style="display: flex; align-items: center; gap: 10px; padding-top: 2px;"><input type="checkbox" id="${f.id}"><label for="${f.id}" style="margin-bottom: 0; font-size: 0.9rem; font-weight: 500; color: var(--text-primary); text-transform: none; letter-spacing: 0;">${f.label}</label></div>`;
+                        formHTML += `<div id="${f.id}-wrapper">${fieldContent}</div>`;
+
+                        // After 'dropout' (last statusGroup item), close the status group and add conditional sub-fields
+                        if (f.id === 'dropout') {
+                            formHTML += `</div>`; // close status group container
+                            // sanadReceived — normal checkbox field, hidden until courseComplete is checked
+                            formHTML += `<div id="sanadReceived-wrapper" style="display:none;">
+                                <div style="display: flex; align-items: center; gap: 10px; padding-top: 4px;"><input type="checkbox" id="sanadReceived"><label for="sanadReceived" style="margin-bottom: 0;">Sanad Received</label></div>
+                            </div>`;
+                            // otherSanad — normal text input, hidden until dropout is checked
+                            formHTML += `<div id="otherSanad-wrapper" style="display:none;">
+                                <label for="otherSanad">Other Sanad Received (specify)</label>
+                                <input type="text" id="otherSanad" placeholder="e.g. Darul Uloom Sanad, Wifaqul Madaris...">
+                            </div>`;
+                        }
+                    } else if (f.conditionalOn) {
+                        // Already injected inline above — skip re-rendering
+                    } else {
+                        let fieldContent = `<label for="${f.id}">${f.label}</label>`;
+                        if (f.type === 'textarea') fieldContent += `<textarea id="${f.id}" rows="3" ${isDisabled}></textarea>`;
+                        else if (f.type === 'select') fieldContent += `<select id="${f.id}" ${isDisabled}>${f.options.map(o => `<option>${o}</option>`).join('')}</select>`;
+                        else if (f.type === 'checkbox') fieldContent = `<div style="display: flex; align-items: center; gap: 10px; padding-top: 4px;"><input type="checkbox" id="${f.id}" ${isDisabled}><label for="${f.id}" style="margin-bottom: 0;">${f.label}</label></div>`;
+                        else fieldContent += `<input type="${f.type || 'text'}" id="${f.id}" ${isDisabled}>`;
+                        formHTML += `<div id="${f.id}-wrapper" style="${wrapperStyle}">${fieldContent}</div>`;
+                    }
                 }
             });
             formHTML += `</fieldset></form>
@@ -1673,29 +1710,76 @@
             const parentId = isStudent ? 'student-dashboard-view' : 'form-view';
             const form = document.getElementById(`student-form-${parentId}`);
 
+            // --- Status Group: Mutual Exclusivity ---
+            const updateStatusGroup = () => {
+                const cs = document.getElementById('currentlyStudent');
+                const cc = document.getElementById('courseComplete');
+                const dr = document.getElementById('dropout');
+                const sanadWrapper = document.getElementById('sanadReceived-wrapper');
+                const otherSanadWrapper = document.getElementById('otherSanad-wrapper');
+                const sanadEl = document.getElementById('sanadReceived');
+                const otherSanadEl = document.getElementById('otherSanad');
+
+                const anyChecked = (cs && cs.checked) || (cc && cc.checked) || (dr && dr.checked);
+
+                // Enable all first, then disable the non-selected ones
+                [cs, cc, dr].forEach(el => { if (el) el.disabled = false; });
+
+                if (cs && cs.checked) {
+                    if (cc) cc.disabled = true;
+                    if (dr) dr.disabled = true;
+                } else if (cc && cc.checked) {
+                    if (cs) cs.disabled = true;
+                    if (dr) dr.disabled = true;
+                } else if (dr && dr.checked) {
+                    if (cs) cs.disabled = true;
+                    if (cc) cc.disabled = true;
+                }
+
+                // Show/hide conditional sub-fields
+                if (sanadWrapper) {
+                    const show = cc && cc.checked;
+                    sanadWrapper.style.display = show ? '' : 'none';
+                    if (!show && sanadEl) sanadEl.checked = false;
+                }
+                if (otherSanadWrapper) {
+                    const show = dr && dr.checked;
+                    otherSanadWrapper.style.display = show ? '' : 'none';
+                    if (!show && otherSanadEl) otherSanadEl.value = '';
+                }
+            };
+
+            ['currentlyStudent', 'courseComplete', 'dropout'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.addEventListener('change', updateStatusGroup);
+            });
+
             const populateForm = (student) => {
+                // --- Married fields toggle (FIXED: uses style.display) ---
                 const maritalStatusSelect = document.getElementById('maritalStatus');
                 const toggleMarriedFields = () => {
                     if (!maritalStatusSelect) return;
                     const show = maritalStatusSelect.value === 'Married';
                     ['children', 'boys', 'girls'].forEach(id => {
                         const el = document.getElementById(`${id}-wrapper`);
-                        if (el) el.classList.toggle('hidden', !show);
+                        if (el) el.style.display = show ? '' : 'none';
                     });
                 };
-                if(maritalStatusSelect) maritalStatusSelect.addEventListener('change', toggleMarriedFields);
+                if (maritalStatusSelect) maritalStatusSelect.addEventListener('change', toggleMarriedFields);
                 
                 formFields.forEach(f => {
                     if (!f.legend && student[f.id] !== undefined && student[f.id] !== null) {
                         const el = document.getElementById(f.id);
-                        if(el) {
-                            if(el.type === 'checkbox') el.checked = student[f.id];
+                        if (el) {
+                            if (el.type === 'checkbox') el.checked = student[f.id];
                             else el.value = student[f.id];
                         }
                     }
                 });
                 
-                if(maritalStatusSelect) toggleMarriedFields();
+                // Initialize toggles after populating
+                if (maritalStatusSelect) toggleMarriedFields();
+                updateStatusGroup();
             };
             
             // Use the passed-in data directly instead of fetching
