@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -924,16 +923,17 @@
             {legend: 'Personal Information'},
             {label: 'Full Name *', id: 'fullName', required: true}, {label: 'Date of Birth * (YYYY-MM-DD)', id: 'dob', type: 'date', required: true},
             {label: 'Address *', id: 'address', type: 'textarea', required: true},
-            {label: 'Phone Number *', id: 'phone', type: 'tel', required: true}, {label: 'WhatsApp Number', id: 'whatsapp', type: 'tel'},
+            {label: 'Phone Number *', id: 'phone', type: 'tel', required: true}, {label: 'WhatsApp Number *', id: 'whatsapp', type: 'tel', required: true},
+            {label: 'Email *', id: 'email', type: 'email', required: true},
             {label: 'Location *', id: 'location', required: true}, {label: 'District *', id: 'district', required: true}, {label: 'Mahallu Masjid *', id: 'mahallu', required: true},
-            {label: 'At Own Home', id: 'atOwnHome', type: 'checkbox'},
-            {legend: 'Educational Information'},
-            {label: 'Email *', id: 'email', type: 'email', required: true}, 
+            {label: 'At Own Home *', id: 'atOwnHome', type: 'select', options: ['', 'Yes', 'No'], required: true},
+            {legend: 'Najath Educational Information'},
             {label: 'Admission No.', id: 'admissionNo', disabled: true},
-            {label: 'SSLC Holder', id: 'sslc', type: 'checkbox'},
+            
             {label: 'Batch No. *', id: 'batchNo', required: true},
+{label: 'SSLC Holder', id: 'sslc', type: 'select', options: ['', 'Yes', 'No']},
             {legend: 'Status'},
-            {label: 'Currently Student', id: 'currentlyStudent', type: 'checkbox', statusGroup: true},
+            {label: 'Currently DH PG Student', id: 'currentlyStudent', type: 'checkbox', statusGroup: true},
             {label: 'Hudawi Course Completed', id: 'courseComplete', type: 'checkbox', statusGroup: true},
             {label: 'Sanad Received', id: 'sanadReceived', type: 'checkbox', conditionalOn: 'courseComplete'},
             {label: 'Dropout', id: 'dropout', type: 'checkbox', statusGroup: true},
@@ -941,14 +941,14 @@
             {legend: 'Higher Education'},
             {label: 'External Degrees (One per line)', id: 'externalDegrees', type: 'textarea'},
             {label: 'External PGs (One per line)', id: 'externalPGs', type: 'textarea'},
-            {label: 'Darul Huda PGs (One per line)', id: 'dhPGs', type: 'textarea'},
+            {label: 'Darul Huda PG (One per line)', id: 'dhPGs', type: 'textarea'},
             {label: 'Other Higher Education (One per line)', id: 'otherHigherEd', type: 'textarea'},
             {legend: 'Professional Information'},
             {label: 'Current Job *', id: 'currentJob', required: true}, 
-            {label: 'Previous Jobs (One per line. Must include institutions name)', id: 'previousJob', type: 'textarea'},
+            {label: 'Previous Jobs (One per line. Must include institutions names)', id: 'previousJob', type: 'textarea'},
             {legend: 'Family Details'},
             {label: 'Father\'s Name *', id: 'fatherName', required: true}, 
-            {label: 'Father\'s Phone *', id: 'fatherPhone', type: 'tel', required: true},
+            {label: 'Father\'s Phone Number *', id: 'fatherPhone', type: 'tel', required: false},
             {label: 'Mother\'s Name *', id: 'motherName', required: true},
             {label: 'Marital Status', id: 'maritalStatus', type: 'select', options: ['Single', 'Married']},
             {label: 'Children', id: 'children', type: 'number', conditional: true},
@@ -1286,8 +1286,8 @@
                     <div style="display: flex; align-items: center;"><h2 style="font-size: 1.75rem; font-weight: 800; color: var(--text-primary);">${student.fullName}</h2>${hudawiBadge}</div>
                     <p style="font-size: 1rem; color: var(--accent-primary); margin-top: 4px;">${subtitle}</p>
                     <div style="margin-top: 32px; display: flex; flex-direction: column; gap: 32px;">
-                        <div><h3 class="section-title">Personal Information</h3><dl>${detailItem('Date of Birth', student.dob)}${detailItem('Phone', student.phone)}${detailItem('WhatsApp', student.whatsapp)}${detailItem('Email', student.email)}${detailItem('Address', student.address)}${detailItem('Location', student.location)}${detailItem('District', student.district)}${detailItem('Mahallu Masjid', student.mahallu)}${detailItem('At Own Home', student.atOwnHome)}</dl></div>
-                        <div><h3 class="section-title">Educational Details</h3><dl>${detailItem('SSLC Holder', student.sslc)}${detailItem('Admission No.', student.admissionNo)}${detailItem('Batch No.', student.batchNo)}${detailListItem('External Degrees', student.externalDegrees)}${detailListItem('External PGs', student.externalPGs)}${detailListItem('Darul Huda PGs', student.dhPGs)}${detailListItem('Other Higher Education', student.otherHigherEd)}</dl></div>
+                        <div><h3 class="section-title">Personal Information</h3><dl>${detailItem('Date of Birth', student.dob)}${detailItem('Phone', student.phone)}${detailItem('WhatsApp', student.whatsapp)}${detailItem('Email', student.email)}${detailItem('Address', student.address)}${detailItem('Location', student.location)}${detailItem('District', student.district)}${detailItem('Mahallu Masjid', student.mahallu)}${detailItem('At Own Home', typeof student.atOwnHome === 'boolean' ? (student.atOwnHome ? 'Yes' : 'No') : student.atOwnHome)}</dl></div>
+                        <div><h3 class="section-title">Educational Details</h3><dl>${detailItem('SSLC Holder', typeof student.sslc === 'boolean' ? (student.sslc ? 'Yes' : 'No') : student.sslc)}${detailItem('Admission No.', student.admissionNo)}${detailItem('Batch No.', student.batchNo)}${detailListItem('External Degrees', student.externalDegrees)}${detailListItem('External PGs', student.externalPGs)}${detailListItem('Darul Huda PGs', student.dhPGs)}${detailListItem('Other Higher Education', student.otherHigherEd)}</dl></div>
                         <div><h3 class="section-title">Status</h3><dl>${detailItem('Currently Student', student.currentlyStudent)}${detailItem('Hudawi Course Completed', student.courseComplete)}${detailItem('Sanad Received', student.sanadReceived)}${detailItem('Dropout', student.dropout)}${student.otherSanad ? detailItem('Other Sanad Received', student.otherSanad) : ''}</dl></div>
                         <div><h3 class="section-title">Professional Information</h3><dl>${detailItem('Current Job', student.currentJob)}${detailListItem('Previous Jobs', student.previousJob)}</dl></div>
                         <div><h3 class="section-title">Family Details</h3><dl>${detailItem('Father\'s Name', student.fatherName)}${detailItem('Father\'s Phone', student.fatherPhone)}${detailItem('Mother\'s Name', student.motherName)}${detailItem('Marital Status', student.maritalStatus)}${student.maritalStatus === 'Married' ? `${detailItem('Total Children', student.children)}${detailItem('Boys', student.boys)}${detailItem('Girls', student.girls)}` : ''}</dl></div>
@@ -1877,7 +1877,7 @@
                                     </div>
                                 </div>
                                 <div id="otherSanad-wrapper" style="display:none;">
-                                    <label for="otherSanad">Other Sanad Received (specify)</label>
+                                    <label for="otherSanad">Other Sanad Received (specify) / Not Recived</label>
                                     <input type="text" id="otherSanad" placeholder="e.g. Anwari, Wafi, Faizy......">
                                 </div>`;
                         }
@@ -1886,7 +1886,7 @@
                     } else {
                         let fc = `<label for="${f.id}">${f.label}</label>`;
                         if (f.type === 'textarea')      fc += `<textarea id="${f.id}" rows="3" ${isDisabled}></textarea>`;
-                        else if (f.type === 'select')   fc += `<select id="${f.id}" ${isDisabled}>${f.options.map(o=>`<option>${o}</option>`).join('')}</select>`;
+                        else if (f.type === 'select')   fc += `<select id="${f.id}" ${isDisabled}>${f.options.map((o,i)=>`<option value="${o}"${i===0?` disabled selected`:``}>${o===''?(f.id==='atOwnHome'?'Select Yes or No':f.id==='sslc'?'Select Yes or No':'Select...'):o}</option>`).join('')}</select>`;
                         else if (f.type === 'checkbox') fc  = `<div style="display:flex;align-items:center;gap:10px;padding-top:4px;"><input type="checkbox" id="${f.id}" ${isDisabled}><label for="${f.id}" style="margin-bottom:0;">${f.label}</label></div>`;
                         else                            fc += `<input type="${f.type||'text'}" id="${f.id}" ${isDisabled}>`;
                         formHTML += `<div id="${f.id}-wrapper" style="${wrapperStyle}">${fc}</div>`;
@@ -1987,6 +1987,10 @@
                         const el = document.getElementById(f.id);
                         if (el) {
                             if (el.type === 'checkbox') el.checked = student[f.id];
+                            else if ((f.id === 'atOwnHome' || f.id === 'sslc') && typeof student[f.id] === 'boolean') {
+                                // Backward compat: old boolean values → Yes/No string
+                                el.value = student[f.id] ? 'Yes' : 'No';
+                            }
                             else el.value = student[f.id];
                         }
                     }
