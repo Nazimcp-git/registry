@@ -954,7 +954,7 @@
             {label: 'Admission No.', id: 'admissionNo', disabled: true},
             
             {label: 'Batch No. *', id: 'batchNo', required: true},
-            {label: 'Years Studied at Najath? *', id: 'yearsAtNajath', type: 'number', required: true},
+            {label: 'Years of Study in Najath *', id: 'yearsAtNajath', type: 'number', required: true},
 {label: 'SSLC Holder', id: 'sslc', type: 'select', options: ['', 'Yes', 'No']},
             {legend: 'Status'},
             {label: 'Currently DH PG Student', id: 'currentlyStudent', type: 'checkbox', statusGroup: true},
@@ -1131,14 +1131,18 @@
                     if (document.body.classList.contains('show-student-dashboard')) {
                         renderStudentDashboard(studentData);
                     } else if (document.body.classList.contains('show-submitted')) {
-                        // Re-attach edit button after returning from submitted screen
+                        // Re-attach edit button
                         const editBtn = document.getElementById('edit-response-btn');
                         if (editBtn) {
                             editBtn.onclick = () => {
+                                sessionStorage.setItem('editingResponse', '1');
                                 document.body.className = 'show-student-dashboard';
                                 renderStudentDashboard(studentData);
                             };
                         }
+                    } else if (!document.body.classList.contains('show-submitted')) {
+                        // First load: show correct view
+                        renderStudentDashboard(studentData);
                     }
                 } else {
                     showNotification("Your student profile was not found. Contacting admin.", "error");
@@ -1270,8 +1274,9 @@
                 return;
             }
 
-            // If student has already completed their profile, show the submitted view
-            if (studentData.dataEntryComplete && !sessionStorage.getItem('editingResponse')) {
+            // Show "Response Saved" screen only if the student personally submitted
+            // (studentHasSubmitted flag set by their own form submission)
+            if (studentData.studentHasSubmitted && !sessionStorage.getItem('editingResponse')) {
                 document.body.className = 'show-submitted';
                 const editBtn = document.getElementById('edit-response-btn');
                 if (editBtn) {
@@ -1336,7 +1341,7 @@
                     <p style="font-size: 1rem; color: var(--accent-primary); margin-top: 4px;">${subtitle}</p>
                     <div style="margin-top: 32px; display: flex; flex-direction: column; gap: 32px;">
                         <div><h3 class="section-title">Personal Information</h3><dl>${detailItem('Date of Birth', student.dob)}${detailItem('Phone', student.phone)}${detailItem('WhatsApp', student.whatsapp)}${detailItem('Email', student.email)}${detailItem('Address', student.address)}${detailItem('Location', student.location)}${detailItem('District', student.district)}${detailItem('Mahallu Masjid', student.mahallu)}${detailItem('At Own Home', typeof student.atOwnHome === 'boolean' ? (student.atOwnHome ? 'Yes' : 'No') : student.atOwnHome)}</dl></div>
-                        <div><h3 class="section-title">Educational Details</h3><dl>${detailItem('SSLC Holder', typeof student.sslc === 'boolean' ? (student.sslc ? 'Yes' : 'No') : student.sslc)}${detailItem('Admission No.', student.admissionNo)}${detailItem('Batch No.', student.batchNo)}${detailListItem('External Degrees', student.externalDegrees)}${detailListItem('External PGs', student.externalPGs)}${detailListItem('Darul Huda PGs', student.dhPGs)}${detailListItem('Other Higher Education', student.otherHigherEd)}</dl></div>
+                        <div><h3 class="section-title">Educational Details</h3><dl>${detailItem('SSLC Holder', typeof student.sslc === 'boolean' ? (student.sslc ? 'Yes' : 'No') : student.sslc)}${detailItem('Admission No.', student.admissionNo)}${detailItem('Batch No.', student.batchNo)}${detailItem('Years of Study in Najath', student.yearsAtNajath)}${detailListItem('External Degrees', student.externalDegrees)}${detailListItem('External PGs', student.externalPGs)}${detailListItem('Darul Huda PGs', student.dhPGs)}${detailListItem('Other Higher Education', student.otherHigherEd)}</dl></div>
                         <div><h3 class="section-title">Status</h3><dl>${detailItem('Currently Student', student.currentlyStudent)}${detailItem('Hudawi Course Completed', student.courseComplete)}${detailItem('Sanad Received', student.sanadReceived)}${detailItem('Dropout', student.dropout)}${student.otherSanad ? detailItem('Other Sanad Received', student.otherSanad) : ''}</dl></div>
                         <div><h3 class="section-title">Professional Information</h3><dl>${detailItem('Current Job', student.currentJob)}${detailListItem('Previous Jobs', student.previousJob)}</dl></div>
                         <div><h3 class="section-title">Family Details</h3><dl>${detailItem('Father\'s Name', student.fatherName)}${detailItem('Father\'s Phone', student.fatherPhone)}${detailItem('Mother\'s Name', student.motherName)}${detailItem('Marital Status', student.maritalStatus)}${student.maritalStatus === 'Married' ? `${detailItem('Total Children', student.children)}${detailItem('Boys', student.boys)}${detailItem('Girls', student.girls)}` : ''}</dl></div>
@@ -1959,7 +1964,7 @@
 
                         <button type="button" class="btn btn-primary wizard-next-btn"
                                 id="wizard-next-${parentId}">Next →</button>
-                        <button type="submit" form="student-form-${parentId}"
+                        <button type="button"
                                 class="btn btn-success wizard-submit-btn"
                                 id="wizard-submit-${parentId}" style="display:none;">
                             ${studentId ? '✓ Update Profile' : '✓ Save Student'}
@@ -2197,7 +2202,21 @@
 
             goToStep(0);
 
-            form.addEventListener('submit', (e) => handleFormSubmit(e, studentId, isStudent));
+            if (form) {
+                form.addEventListener('submit', (e) => handleFormSubmit(e, studentId, isStudent));
+            } else {
+                console.error('[Form] Could not find form element: student-form-' + parentId);
+            }
+
+            // Wire submit button click directly — validates final step then submits
+            if (submitBtn) {
+                submitBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    if (validateStep(currentStep)) {
+                        handleFormSubmit(e, studentId, isStudent);
+                    }
+                });
+            }
         };
         
         const handleFormSubmit = (e, studentId, isStudent) => {
@@ -2223,6 +2242,9 @@
             
             // Set dataEntryComplete based on the new logic
             studentData.dataEntryComplete = checkDataCompleteness(mergedData);
+
+            // Mark that this student personally submitted their own form
+            if (isStudent) studentData.studentHasSubmitted = true;
             
             // Use .update() to merge data in RTDB
             studentsRef.child(studentId).update(studentData)
