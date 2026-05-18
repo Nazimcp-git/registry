@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -418,13 +419,185 @@
             animation: fadeInUp 0.3s ease;
         }
 
-        /* Responsive */
+        /* =============================================
+           FORM WIZARD STYLES
+           ============================================= */
+        .form-wizard-card { padding: 0; overflow: hidden; }
+        .form-wizard-header {
+            padding: 24px 28px 18px;
+            background: linear-gradient(135deg, #f8f9ff 0%, #ffffff 100%);
+            border-bottom: 1px solid var(--border-color);
+        }
+        .step-progress-bar {
+            height: 5px;
+            background: #e5e7eb;
+            border-radius: 99px;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+        .step-progress-fill {
+            height: 100%;
+            background: var(--gradient-1);
+            border-radius: 99px;
+            transition: width 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .step-progress-text {
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--accent-primary);
+            letter-spacing: 0.02em;
+        }
+        .form-step {
+            padding: 24px 28px 8px;
+            animation: fadeInUp 0.3s ease forwards;
+        }
+        .form-wizard-footer {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 16px 28px 22px;
+            border-top: 1px solid var(--border-color);
+            background: #fafafa;
+            flex-wrap: wrap;
+        }
+        .wizard-jump-select {
+            flex: 1;
+            min-width: 160px;
+            font-size: 0.82rem;
+            padding: 9px 12px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-color);
+            background: #fff;
+            color: var(--text-secondary);
+            cursor: pointer;
+        }
+        .wizard-jump-select:focus { border-color: var(--accent-primary); outline: none; }
+        @media (max-width: 600px) {
+            .form-wizard-header { padding: 18px 16px 14px; }
+            .form-step { padding: 18px 16px 8px; }
+            .form-wizard-footer { padding: 12px 16px 18px; gap: 8px; }
+            .wizard-jump-select { min-width: 0; width: 100%; order: -1; }
+        }
+
+        /* =============================================
+           MOBILE RESPONSIVE IMPROVEMENTS
+           ============================================= */
         @media (max-width: 768px) {
             .hide-mobile { display: none !important; }
             .student-table th, .student-table td {
                 padding: 10px 12px;
                 font-size: 0.8rem;
             }
+        }
+        @media (max-width: 640px) {
+            /* Layout */
+            body > div { padding: 16px 14px; }
+            
+            /* Header */
+            #app-header {
+                flex-direction: column;
+                align-items: flex-start !important;
+                gap: 12px;
+                margin-bottom: 20px !important;
+            }
+            #app-header h1 { font-size: 1.35rem !important; }
+            #app-header p { font-size: 0.78rem !important; }
+            #header-controls { width: 100%; }
+            #header-controls > div {
+                flex-wrap: wrap;
+                gap: 6px !important;
+                justify-content: flex-start;
+            }
+            #header-controls .btn {
+                font-size: 0.78rem;
+                padding: 8px 12px;
+            }
+
+            /* Cards */
+            .glass-card { border-radius: 12px; }
+            
+            /* Form wizard mobile */
+            .form-wizard-header { padding: 20px 18px 16px; }
+            .form-step { padding: 20px 18px 8px; }
+            .form-wizard-footer {
+                padding: 16px 18px 20px;
+                flex-wrap: wrap;
+            }
+            .wizard-prev-btn { order: 1; flex: 1; justify-content: center; }
+            .wizard-next-btn, .wizard-submit-btn { order: 2; flex: 1; justify-content: center; }
+            .form-wizard-footer > div[style*="flex:1"] { display: none; }
+
+            /* Inputs — larger touch targets */
+            input[type="text"], input[type="email"], input[type="tel"],
+            input[type="date"], input[type="number"], input[type="password"],
+            select, textarea {
+                padding: 13px 14px;
+                font-size: 16px; /* prevents iOS zoom */
+            }
+            input[type="checkbox"] { width: 22px; height: 22px; }
+
+            /* Buttons */
+            .btn { padding: 11px 16px; font-size: 0.85rem; }
+            .btn-primary, .btn-success { font-size: 0.9rem; }
+
+            /* Bulk upload / profile cards */
+            #bulk-upload-view .glass-card,
+            #report-view .glass-card,
+            #export-view .glass-card { padding: 20px 16px !important; }
+
+            /* Admin dashboard filters */
+            #admin-dashboard-view > div:first-child {
+                flex-direction: column;
+            }
+            #admin-dashboard-view > div:first-child input,
+            #admin-dashboard-view > div:first-child select {
+                width: 100% !important;
+                min-width: unset !important;
+            }
+
+            /* Profile view */
+            #profile-content h2 { font-size: 1.4rem !important; }
+            #profile-content > div > div { padding: 10px 0 !important; }
+            dl > div { grid-template-columns: 1fr !important; }
+            
+            /* Tabs */
+            .tab-btn { padding: 10px 12px; font-size: 0.8rem; }
+
+            /* Summary cards */
+            #summary-cards { grid-template-columns: 1fr !important; }
+
+            /* Export page selects */
+            #export-view select { width: 100% !important; }
+            #export-view > div > div:last-child { flex-direction: column; }
+            #export-view button { width: 100% !important; }
+        }
+
+        /* Field validation error state */
+        .field-error input,
+        .field-error textarea,
+        .field-error select {
+            border-color: var(--danger) !important;
+            box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.12) !important;
+        }
+        .field-error-msg {
+            font-size: 0.78rem;
+            color: var(--danger);
+            margin-top: 4px;
+            font-weight: 500;
+        }
+        .step-error-banner {
+            background: var(--danger-bg);
+            border: 1px solid #fecaca;
+            border-radius: var(--radius-sm);
+            padding: 10px 16px;
+            margin-bottom: 16px;
+            font-size: 0.85rem;
+            color: var(--danger);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            animation: slideDown 0.25s ease;
         }
 
         /* Print Styles */
@@ -472,7 +645,7 @@
 </head>
 <body class="show-loading">
 
-    <div style="max-width: 1200px; margin: 0 auto; padding: 24px 20px;">
+    <div style="max-width: 1200px; margin: 0 auto; padding: clamp(14px, 4vw, 24px) clamp(14px, 4vw, 24px);">
         <header id="app-header" class="no-print" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 32px; padding-bottom: 20px; border-bottom: 1px solid var(--border-color);">
             <div>
                 <h1 style="font-size: 1.75rem; font-weight: 800; color: var(--accent-primary);">Nishan Alumni Register</h1>
@@ -750,18 +923,18 @@
         const formFields = [
             {legend: 'Personal Information'},
             {label: 'Full Name *', id: 'fullName', required: true}, {label: 'Date of Birth * (YYYY-MM-DD)', id: 'dob', type: 'date', required: true},
-            {label: 'Address', id: 'address', type: 'textarea'},
+            {label: 'Address *', id: 'address', type: 'textarea', required: true},
             {label: 'Phone Number *', id: 'phone', type: 'tel', required: true}, {label: 'WhatsApp Number', id: 'whatsapp', type: 'tel'},
-            {label: 'Location', id: 'location'}, {label: 'District', id: 'district'}, {label: 'Mahallu Masjid', id: 'mahallu'},
+            {label: 'Location *', id: 'location', required: true}, {label: 'District *', id: 'district', required: true}, {label: 'Mahallu Masjid *', id: 'mahallu', required: true},
             {label: 'At Own Home', id: 'atOwnHome', type: 'checkbox'},
             {legend: 'Educational Information'},
-            {label: 'Email', id: 'email', type: 'email'}, 
+            {label: 'Email *', id: 'email', type: 'email', required: true}, 
             {label: 'Admission No.', id: 'admissionNo', disabled: true},
             {label: 'SSLC Holder', id: 'sslc', type: 'checkbox'},
-            {label: 'Batch No.', id: 'batchNo'},
-            {legend: 'Hudawi Course Status'},
+            {label: 'Batch No. *', id: 'batchNo', required: true},
+            {legend: 'Status'},
             {label: 'Currently Student', id: 'currentlyStudent', type: 'checkbox', statusGroup: true},
-            {label: 'Course Complete', id: 'courseComplete', type: 'checkbox', statusGroup: true},
+            {label: 'Hudawi Course Completed', id: 'courseComplete', type: 'checkbox', statusGroup: true},
             {label: 'Sanad Received', id: 'sanadReceived', type: 'checkbox', conditionalOn: 'courseComplete'},
             {label: 'Dropout', id: 'dropout', type: 'checkbox', statusGroup: true},
             {label: 'Other Sanad Received (specify)', id: 'otherSanad', conditionalOn: 'dropout'},
@@ -771,12 +944,12 @@
             {label: 'Darul Huda PGs (One per line)', id: 'dhPGs', type: 'textarea'},
             {label: 'Other Higher Education (One per line)', id: 'otherHigherEd', type: 'textarea'},
             {legend: 'Professional Information'},
-            {label: 'Current Job', id: 'currentJob'}, 
+            {label: 'Current Job *', id: 'currentJob', required: true}, 
             {label: 'Previous Jobs (One per line. Must include institutions name)', id: 'previousJob', type: 'textarea'},
             {legend: 'Family Details'},
-            {label: 'Father\'s Name', id: 'fatherName'}, 
-            {label: 'Father\'s Phone', id: 'fatherPhone', type: 'tel'},
-            {label: 'Mother\'s Name', id: 'motherName'},
+            {label: 'Father\'s Name *', id: 'fatherName', required: true}, 
+            {label: 'Father\'s Phone *', id: 'fatherPhone', type: 'tel', required: true},
+            {label: 'Mother\'s Name *', id: 'motherName', required: true},
             {label: 'Marital Status', id: 'maritalStatus', type: 'select', options: ['Single', 'Married']},
             {label: 'Children', id: 'children', type: 'number', conditional: true},
             {label: 'Boys', id: 'boys', type: 'number', conditional: true}, {label: 'Girls', id: 'girls', type: 'number', conditional: true}
@@ -1115,7 +1288,7 @@
                     <div style="margin-top: 32px; display: flex; flex-direction: column; gap: 32px;">
                         <div><h3 class="section-title">Personal Information</h3><dl>${detailItem('Date of Birth', student.dob)}${detailItem('Phone', student.phone)}${detailItem('WhatsApp', student.whatsapp)}${detailItem('Email', student.email)}${detailItem('Address', student.address)}${detailItem('Location', student.location)}${detailItem('District', student.district)}${detailItem('Mahallu Masjid', student.mahallu)}${detailItem('At Own Home', student.atOwnHome)}</dl></div>
                         <div><h3 class="section-title">Educational Details</h3><dl>${detailItem('SSLC Holder', student.sslc)}${detailItem('Admission No.', student.admissionNo)}${detailItem('Batch No.', student.batchNo)}${detailListItem('External Degrees', student.externalDegrees)}${detailListItem('External PGs', student.externalPGs)}${detailListItem('Darul Huda PGs', student.dhPGs)}${detailListItem('Other Higher Education', student.otherHigherEd)}</dl></div>
-                        <div><h3 class="section-title">Hudawi Course Status</h3><dl>${detailItem('Currently Student', student.currentlyStudent)}${detailItem('Course Complete', student.courseComplete)}${detailItem('Sanad Received', student.sanadReceived)}${detailItem('Dropout', student.dropout)}${student.otherSanad ? detailItem('Other Sanad Received', student.otherSanad) : ''}</dl></div>
+                        <div><h3 class="section-title">Status</h3><dl>${detailItem('Currently Student', student.currentlyStudent)}${detailItem('Hudawi Course Completed', student.courseComplete)}${detailItem('Sanad Received', student.sanadReceived)}${detailItem('Dropout', student.dropout)}${student.otherSanad ? detailItem('Other Sanad Received', student.otherSanad) : ''}</dl></div>
                         <div><h3 class="section-title">Professional Information</h3><dl>${detailItem('Current Job', student.currentJob)}${detailListItem('Previous Jobs', student.previousJob)}</dl></div>
                         <div><h3 class="section-title">Family Details</h3><dl>${detailItem('Father\'s Name', student.fatherName)}${detailItem('Father\'s Phone', student.fatherPhone)}${detailItem('Mother\'s Name', student.motherName)}${detailItem('Marital Status', student.maritalStatus)}${student.maritalStatus === 'Married' ? `${detailItem('Total Children', student.children)}${detailItem('Boys', student.boys)}${detailItem('Girls', student.girls)}` : ''}</dl></div>
                     </div>
@@ -1630,79 +1803,121 @@
 
 
         // --- Form Rendering and Submission Logic (RE-USABLE) ---
-        
+
         const buildFormHtml = (parentId, studentId, student, isStudent) => {
             let formTitle, cancelHash;
             if (isStudent) {
                 formTitle = "Update Your Profile";
-                cancelHash = null; 
+                cancelHash = null;
             } else {
                 formTitle = studentId ? 'Edit Student Record' : 'Add New Student';
                 cancelHash = studentId ? `#/profile/${studentId}` : '#/admin-dashboard';
             }
-            const cancelBtnHtml = cancelHash ? `<a href="${cancelHash}" class="btn btn-ghost" style="text-decoration: none;">CANCEL</a>` : '';
-            
-            let formHTML = `
-                <div class="glass-card" style="padding: 32px;">
-                    <div style="display: flex; align-items: center; justify-content: space-between; padding-bottom: 16px; border-bottom: 1px solid var(--border-color); margin-bottom: 24px;">
-                        <h2 style="font-size: 1.4rem; font-weight: 800; color: var(--text-primary);">${formTitle}</h2>
-                        ${cancelBtnHtml}
-                    </div>
-                    <form id="student-form-${parentId}" style="display: flex; flex-direction: column; gap: 20px;">
-            `;
-            
-            formFields.forEach((f, index) => {
+            const cancelBtnHtml = cancelHash
+                ? `<a href="${cancelHash}" class="btn btn-ghost" style="text-decoration:none;">CANCEL</a>`
+                : '';
+
+            // Group formFields by legend into sections
+            const sections = [];
+            let currentSection = null;
+            formFields.forEach(f => {
                 if (f.legend) {
-                    if (index > 0) formHTML += `</fieldset>`;
-                    formHTML += `<fieldset style="display: flex; flex-direction: column; gap: 16px; padding-top: 16px;"><legend>${f.legend}</legend>`;
-
-                    // Inject status group container right after Hudawi Course Status legend
-                    if (f.legend === 'Hudawi Course Status') {
-                        formHTML += `<div id="student-status-group">
-                            <label style="margin-bottom: 12px; font-size: 0.8rem; font-weight: 600; color: var(--accent-primary); text-transform: uppercase; letter-spacing: 0.05em;">Student Status (select one)</label>`;
-                    }
-                } else {
-                    const isDisabled = f.disabled ? 'disabled' : '';
-                    const isConditionallyHidden = (f.conditional || f.conditionalOn) ? true : false;
-                    const wrapperStyle = isConditionallyHidden ? 'display: none;' : '';
-
-                    if (f.statusGroup) {
-                        // Render inside the status group container
-                        const fieldContent = `<div style="display: flex; align-items: center; gap: 10px; padding-top: 2px;"><input type="checkbox" id="${f.id}"><label for="${f.id}" style="margin-bottom: 0; font-size: 0.9rem; font-weight: 500; color: var(--text-primary); text-transform: none; letter-spacing: 0;">${f.label}</label></div>`;
-                        formHTML += `<div id="${f.id}-wrapper">${fieldContent}</div>`;
-
-                        // After 'dropout' (last statusGroup item), close the status group and add conditional sub-fields
-                        if (f.id === 'dropout') {
-                            formHTML += `</div>`; // close status group container
-                            // sanadReceived — normal checkbox field, hidden until courseComplete is checked
-                            formHTML += `<div id="sanadReceived-wrapper" style="display:none;">
-                                <div style="display: flex; align-items: center; gap: 10px; padding-top: 4px;"><input type="checkbox" id="sanadReceived"><label for="sanadReceived" style="margin-bottom: 0;">Sanad Received</label></div>
-                            </div>`;
-                            // otherSanad — normal text input, hidden until dropout is checked
-                            formHTML += `<div id="otherSanad-wrapper" style="display:none;">
-                                <label for="otherSanad">Other Sanad Received (specify)</label>
-                                <input type="text" id="otherSanad" placeholder="e.g. Darul Uloom Sanad, Wifaqul Madaris...">
-                            </div>`;
-                        }
-                    } else if (f.conditionalOn) {
-                        // Already injected inline above — skip re-rendering
-                    } else {
-                        let fieldContent = `<label for="${f.id}">${f.label}</label>`;
-                        if (f.type === 'textarea') fieldContent += `<textarea id="${f.id}" rows="3" ${isDisabled}></textarea>`;
-                        else if (f.type === 'select') fieldContent += `<select id="${f.id}" ${isDisabled}>${f.options.map(o => `<option>${o}</option>`).join('')}</select>`;
-                        else if (f.type === 'checkbox') fieldContent = `<div style="display: flex; align-items: center; gap: 10px; padding-top: 4px;"><input type="checkbox" id="${f.id}" ${isDisabled}><label for="${f.id}" style="margin-bottom: 0;">${f.label}</label></div>`;
-                        else fieldContent += `<input type="${f.type || 'text'}" id="${f.id}" ${isDisabled}>`;
-                        formHTML += `<div id="${f.id}-wrapper" style="${wrapperStyle}">${fieldContent}</div>`;
-                    }
+                    currentSection = { legend: f.legend, fields: [] };
+                    sections.push(currentSection);
+                } else if (currentSection) {
+                    currentSection.fields.push(f);
                 }
             });
-            formHTML += `</fieldset></form>
-                    <div style="margin-top: 32px; padding-top: 16px; border-top: 1px solid var(--border-color);">
-                        <button type="submit" form="student-form-${parentId}" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 14px; font-size: 0.95rem;">
-                            ${studentId ? 'Update Profile' : 'Save Student'}
+            const totalSteps = sections.length;
+
+            // Dropdown options
+            const dropdownOptions = sections.map((s, i) =>
+                `<option value="${i}">${i + 1}. ${s.legend}</option>`).join('');
+
+            let formHTML = `
+                <div class="glass-card form-wizard-card">
+                    <div class="form-wizard-header">
+                        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+                            <h2 style="font-size:1.25rem;font-weight:800;color:var(--text-primary);">${formTitle}</h2>
+                            ${cancelBtnHtml}
+                        </div>
+                        <div class="step-progress-bar">
+                            <div class="step-progress-fill" id="step-progress-fill-${parentId}"
+                                 style="width:${(1/totalSteps*100).toFixed(1)}%;"></div>
+                        </div>
+                        <div class="step-progress-text" id="step-progress-text-${parentId}">
+                            Step 1 of ${totalSteps}: ${sections[0].legend}
+                        </div>
+                    </div>
+
+                    <form id="student-form-${parentId}">`;
+
+            sections.forEach((section, sIndex) => {
+                formHTML += `<div class="form-step" data-step="${sIndex}" style="${sIndex === 0 ? '' : 'display:none;'}">
+                    <fieldset style="display:flex;flex-direction:column;gap:16px;padding-top:4px;">
+                        <legend>${section.legend}</legend>`;
+
+                if (section.legend === 'Status') formHTML += `<div id="student-status-group">`;
+
+                section.fields.forEach(f => {
+                    const isDisabled = f.disabled ? 'disabled' : '';
+                    const wrapperStyle = (f.conditional || f.conditionalOn) ? 'display:none;' : '';
+                    if (f.statusGroup) {
+                        formHTML += `<div id="${f.id}-wrapper">
+                            <div style="display:flex;align-items:center;gap:10px;padding-top:2px;">
+                                <input type="checkbox" id="${f.id}">
+                                <label for="${f.id}" style="margin-bottom:0;font-size:0.9rem;font-weight:500;color:var(--text-primary);text-transform:none;letter-spacing:0;">${f.label}</label>
+                            </div></div>`;
+                        if (f.id === 'dropout') {
+                            formHTML += `</div>
+                                <div id="sanadReceived-wrapper" style="display:none;">
+                                    <div style="display:flex;align-items:center;gap:10px;padding-top:4px;">
+                                        <input type="checkbox" id="sanadReceived">
+                                        <label for="sanadReceived" style="margin-bottom:0;">Sanad Received</label>
+                                    </div>
+                                </div>
+                                <div id="otherSanad-wrapper" style="display:none;">
+                                    <label for="otherSanad">Other Sanad Received (specify)</label>
+                                    <input type="text" id="otherSanad" placeholder="e.g. Anwari, Wafi, Faizy......">
+                                </div>`;
+                        }
+                    } else if (f.conditionalOn) {
+                        // handled inline
+                    } else {
+                        let fc = `<label for="${f.id}">${f.label}</label>`;
+                        if (f.type === 'textarea')      fc += `<textarea id="${f.id}" rows="3" ${isDisabled}></textarea>`;
+                        else if (f.type === 'select')   fc += `<select id="${f.id}" ${isDisabled}>${f.options.map(o=>`<option>${o}</option>`).join('')}</select>`;
+                        else if (f.type === 'checkbox') fc  = `<div style="display:flex;align-items:center;gap:10px;padding-top:4px;"><input type="checkbox" id="${f.id}" ${isDisabled}><label for="${f.id}" style="margin-bottom:0;">${f.label}</label></div>`;
+                        else                            fc += `<input type="${f.type||'text'}" id="${f.id}" ${isDisabled}>`;
+                        formHTML += `<div id="${f.id}-wrapper" style="${wrapperStyle}">${fc}</div>`;
+                    }
+                });
+
+                formHTML += `</fieldset></div>`;
+            });
+
+            formHTML += `
+                    </form>
+
+                    <div class="form-wizard-footer" id="form-wizard-footer-${parentId}">
+                        <button type="button" class="btn btn-secondary wizard-prev-btn"
+                                id="wizard-prev-${parentId}" style="display:none;">← Prev</button>
+
+                        <select class="wizard-jump-select" id="wizard-jump-${parentId}"
+                                title="Jump to any section">
+                            ${dropdownOptions}
+                        </select>
+
+                        <button type="button" class="btn btn-primary wizard-next-btn"
+                                id="wizard-next-${parentId}">Next →</button>
+                        <button type="submit" form="student-form-${parentId}"
+                                class="btn btn-success wizard-submit-btn"
+                                id="wizard-submit-${parentId}" style="display:none;">
+                            ${studentId ? '✓ Update Profile' : '✓ Save Student'}
                         </button>
                     </div>
                 </div>`;
+
             return formHTML;
         };
 
@@ -1784,6 +1999,150 @@
             
             // Use the passed-in data directly instead of fetching
             populateForm(studentData);
+
+            // ── Wizard step navigation ────────────────────────────────────────
+            let currentStep = 0;
+            const stepEls    = Array.from(document.querySelectorAll(`#student-form-${parentId} .form-step`));
+            const totalSteps = stepEls.length;
+            const prevBtn    = document.getElementById(`wizard-prev-${parentId}`);
+            const nextBtn    = document.getElementById(`wizard-next-${parentId}`);
+            const submitBtn  = document.getElementById(`wizard-submit-${parentId}`);
+            const progressFill = document.getElementById(`step-progress-fill-${parentId}`);
+            const progressText = document.getElementById(`step-progress-text-${parentId}`);
+            const jumpSelect   = document.getElementById(`wizard-jump-${parentId}`);
+            const stepLabels   = formFields.filter(f => f.legend).map(f => f.legend);
+
+            // Rebuild sections map for validation
+            const sections = [];
+            let _curSec = null;
+            formFields.forEach(f => {
+                if (f.legend) { _curSec = { legend: f.legend, fields: [] }; sections.push(_curSec); }
+                else if (_curSec) _curSec.fields.push(f);
+            });
+
+            // --- Step validation helper ---
+            const validateStep = (step) => {
+                const stepEl = stepEls[step];
+                // Clear previous errors in this step
+                stepEl.querySelectorAll('.field-error').forEach(el => el.classList.remove('field-error'));
+                stepEl.querySelectorAll('.field-error-msg').forEach(el => el.remove());
+                const existingBanner = stepEl.querySelector('.step-error-banner');
+                if (existingBanner) existingBanner.remove();
+
+                const section = sections[step];
+                let hasError = false;
+
+                section.fields.forEach(f => {
+                    if (!f.required || f.disabled || f.type === 'checkbox') return;
+                    const el = document.getElementById(f.id);
+                    if (!el) return;
+                    // Skip if wrapper is hidden (conditional field not shown)
+                    const wrapper = document.getElementById(`${f.id}-wrapper`);
+                    if (wrapper && wrapper.style.display === 'none') return;
+
+                    const val = el.value ? el.value.trim() : '';
+                    if (!val) {
+                        hasError = true;
+                        const wrapperEl = wrapper || el.parentElement;
+                        wrapperEl.classList.add('field-error');
+                        const msg = document.createElement('p');
+                        msg.className = 'field-error-msg';
+                        msg.textContent = 'This field is required';
+                        wrapperEl.appendChild(msg);
+                    }
+                });
+
+                // Special check: Status section requires at least one status selected
+                if (section.legend === 'Status') {
+                    const cs = document.getElementById('currentlyStudent');
+                    const cc = document.getElementById('courseComplete');
+                    const dr = document.getElementById('dropout');
+                    const anyChecked = (cs && cs.checked) || (cc && cc.checked) || (dr && dr.checked);
+                    if (!anyChecked) {
+                        hasError = true;
+                        const statusGroup = document.getElementById('student-status-group');
+                        if (statusGroup && !statusGroup.querySelector('.field-error-msg')) {
+                            const msg = document.createElement('p');
+                            msg.className = 'field-error-msg';
+                            msg.style.marginBottom = '8px';
+                            msg.textContent = 'Please select at least one status option';
+                            statusGroup.prepend(msg);
+                        }
+                    }
+                }
+
+                if (hasError) {
+                    const banner = document.createElement('div');
+                    banner.className = 'step-error-banner';
+                    banner.innerHTML = `<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg> Please fill in all required fields before continuing.`;
+                    stepEl.querySelector('fieldset').prepend(banner);
+                    // Scroll to first error
+                    const firstErr = stepEl.querySelector('.field-error input, .field-error textarea, .field-error select');
+                    if (firstErr) firstErr.focus();
+                }
+                return !hasError;
+            };
+
+            const goToStep = (step) => {
+                stepEls.forEach((el, i) => { el.style.display = i === step ? '' : 'none'; });
+                currentStep = step;
+                const pct = ((step + 1) / totalSteps * 100).toFixed(1);
+                if (progressFill) progressFill.style.width = pct + '%';
+                if (progressText) progressText.textContent =
+                    `Step ${step + 1} of ${totalSteps}: ${stepLabels[step]}`;
+                if (prevBtn)    prevBtn.style.display    = step === 0              ? 'none' : '';
+                if (nextBtn)    nextBtn.style.display    = step === totalSteps - 1 ? 'none' : '';
+                if (submitBtn)  submitBtn.style.display  = step === totalSteps - 1 ? ''     : 'none';
+                if (jumpSelect) jumpSelect.value = step;
+                const card = document.querySelector(`#${parentId} .form-wizard-card`);
+                if (card) card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                else window.scrollTo({ top: 0, behavior: 'smooth' });
+            };
+
+            // Clear error styling when user starts correcting a field
+            stepEls.forEach(stepEl => {
+                stepEl.querySelectorAll('input, textarea, select').forEach(input => {
+                    input.addEventListener('input', () => {
+                        const wrapper = input.closest('.field-error');
+                        if (wrapper) {
+                            wrapper.classList.remove('field-error');
+                            const msg = wrapper.querySelector('.field-error-msg');
+                            if (msg) msg.remove();
+                        }
+                    });
+                    input.addEventListener('change', () => {
+                        const wrapper = input.closest('.field-error');
+                        if (wrapper) {
+                            wrapper.classList.remove('field-error');
+                            const msg = wrapper.querySelector('.field-error-msg');
+                            if (msg) msg.remove();
+                        }
+                    });
+                });
+            });
+
+            if (jumpSelect) jumpSelect.addEventListener('change', () => {
+                const targetStep = Number(jumpSelect.value);
+                // Only allow jumping forward if all previous steps are valid
+                if (targetStep > currentStep) {
+                    for (let s = currentStep; s < targetStep; s++) {
+                        if (!validateStep(s)) {
+                            goToStep(s); // stay on failing step
+                            jumpSelect.value = s;
+                            return;
+                        }
+                    }
+                }
+                goToStep(targetStep);
+            });
+            if (nextBtn) nextBtn.addEventListener('click', () => {
+                if (currentStep < totalSteps - 1) {
+                    if (validateStep(currentStep)) goToStep(currentStep + 1);
+                }
+            });
+            if (prevBtn) prevBtn.addEventListener('click', () => { if (currentStep > 0) goToStep(currentStep - 1); });
+
+            goToStep(0);
 
             form.addEventListener('submit', (e) => handleFormSubmit(e, studentId, isStudent));
         };
