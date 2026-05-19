@@ -974,7 +974,7 @@
             {label: 'Father\'s Name *', id: 'fatherName', required: true}, 
             {label: 'Father\'s Phone Number *', id: 'fatherPhone', type: 'tel', required: false},
             {label: 'Mother\'s Name *', id: 'motherName', required: true},
-            {label: 'Marital Status', id: 'maritalStatus', type: 'select', options: ['Single', 'Married']},
+            {label: 'Marital Status *', id: 'maritalStatus', type: 'select', options: ['', 'Single', 'Married'], required: true},
             {label: 'Children', id: 'children', type: 'number', conditional: true},
             {label: 'Boys', id: 'boys', type: 'number', conditional: true}, {label: 'Girls', id: 'girls', type: 'number', conditional: true}
         ];
@@ -1005,28 +1005,33 @@
         };
 
         /**
-         * NEW: Checks if a student profile is "Complete" based on new rules
-         * @param {object} student - The student data object
-         * @returns {boolean} - True if the profile is complete
+         * Checks if a student profile is "Complete".
+         * Derived directly from formFields so it never goes out of sync with the form.
          */
         const checkDataCompleteness = (student) => {
             if (!student) return false;
-            
-            const requiredFields = [
-                'fullName', 
-                'address', 
-                'location', 
-                'phone', 
-                'admissionNo', 
-                'batchNo', 
-                'fatherName'
-            ];
-            
-            // Check if every required field is present and not an empty string
-            return requiredFields.every(field => {
-                const value = student[field];
+
+            // 1. All fields with required:true in formFields
+            const requiredFieldIds = formFields
+                .filter(f => f.required && !f.disabled && f.id)
+                .map(f => f.id);
+
+            const allRequiredFilled = requiredFieldIds.every(id => {
+                const value = student[id];
                 return value !== null && value !== undefined && String(value).trim() !== '';
             });
+            if (!allRequiredFilled) return false;
+
+            // 2. admissionNo must be set (assigned by admin)
+            if (!student.admissionNo || String(student.admissionNo).trim() === '') return false;
+
+            // 3. At least one Status must be selected
+            const hasStatus = student.currentlyStudent === true
+                || student.courseComplete === true
+                || student.dropout === true;
+            if (!hasStatus) return false;
+
+            return true;
         };
 
         // --- Simple Authentication Logic ---
@@ -1076,6 +1081,7 @@
         const handleLogout = () => {
             sessionStorage.removeItem('appRole');
             sessionStorage.removeItem('studentKey');
+            sessionStorage.removeItem('editingResponse');
             sessionStorage.removeItem('editingResponse');
             cleanupListeners();
             window.location.hash = '#/login';
@@ -1131,18 +1137,14 @@
                     if (document.body.classList.contains('show-student-dashboard')) {
                         renderStudentDashboard(studentData);
                     } else if (document.body.classList.contains('show-submitted')) {
-                        // Re-attach edit button
+                        // Re-attach edit button after returning from submitted screen
                         const editBtn = document.getElementById('edit-response-btn');
                         if (editBtn) {
                             editBtn.onclick = () => {
-                                sessionStorage.setItem('editingResponse', '1');
                                 document.body.className = 'show-student-dashboard';
                                 renderStudentDashboard(studentData);
                             };
                         }
-                    } else if (!document.body.classList.contains('show-submitted')) {
-                        // First load: show correct view
-                        renderStudentDashboard(studentData);
                     }
                 } else {
                     showNotification("Your student profile was not found. Contacting admin.", "error");
@@ -1274,8 +1276,7 @@
                 return;
             }
 
-            // Show "Response Saved" screen only if the student personally submitted
-            // (studentHasSubmitted flag set by their own form submission)
+            // If student has already completed their profile, show the submitted view
             if (studentData.studentHasSubmitted && !sessionStorage.getItem('editingResponse')) {
                 document.body.className = 'show-submitted';
                 const editBtn = document.getElementById('edit-response-btn');
@@ -2030,8 +2031,13 @@
                     if (!maritalStatusSelect) return;
                     const show = maritalStatusSelect.value === 'Married';
                     ['children', 'boys', 'girls'].forEach(id => {
-                        const el = document.getElementById(`${id}-wrapper`);
-                        if (el) el.style.display = show ? '' : 'none';
+                        const wrapper = document.getElementById(`${id}-wrapper`);
+                        if (wrapper) wrapper.style.display = show ? '' : 'none';
+                        // Clear values when hiding so they don't get saved on submit
+                        if (!show) {
+                            const input = document.getElementById(id);
+                            if (input) input.value = '';
+                        }
                     });
                 };
                 if (maritalStatusSelect) maritalStatusSelect.addEventListener('change', toggleMarriedFields);
@@ -2204,11 +2210,8 @@
 
             if (form) {
                 form.addEventListener('submit', (e) => handleFormSubmit(e, studentId, isStudent));
-            } else {
-                console.error('[Form] Could not find form element: student-form-' + parentId);
             }
 
-            // Wire submit button click directly — validates final step then submits
             if (submitBtn) {
                 submitBtn.addEventListener('click', (e) => {
                     e.preventDefault();
@@ -2243,7 +2246,7 @@
             // Set dataEntryComplete based on the new logic
             studentData.dataEntryComplete = checkDataCompleteness(mergedData);
 
-            // Mark that this student personally submitted their own form
+            // Mark that this student personally submitted
             if (isStudent) studentData.studentHasSubmitted = true;
             
             // Use .update() to merge data in RTDB
