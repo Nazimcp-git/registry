@@ -758,6 +758,149 @@
             animation: slideDown 0.25s ease;
         }
 
+        /* =============================================
+           STUDENT PROFILE VIEW STYLES
+           ============================================= */
+        :root {
+            --sp-teal: #0d9488;
+            --sp-teal-light: #14b8a6;
+            --sp-teal-dark: #0f766e;
+            --sp-teal-glow: rgba(13,148,136,0.15);
+            --sp-emerald: #059669;
+            --sp-amber: #d97706;
+        }
+        .sp-hero {
+            background: linear-gradient(135deg, #0d9488 0%, #0891b2 55%, #2dd4bf 100%);
+            padding: 32px 28px 28px;
+            position: relative;
+            overflow: hidden;
+        }
+        .sp-hero::before {
+            content: '';
+            position: absolute;
+            top: -60px; right: -60px;
+            width: 220px; height: 220px;
+            background: rgba(255,255,255,.07);
+            border-radius: 50%;
+        }
+        .sp-hero::after {
+            content: '';
+            position: absolute;
+            bottom: -70px; left: 30px;
+            width: 160px; height: 160px;
+            background: rgba(255,255,255,.05);
+            border-radius: 50%;
+        }
+        .sp-avatar {
+            width: 76px; height: 76px;
+            background: rgba(255,255,255,.22);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            border: 3px solid rgba(255,255,255,.4);
+            flex-shrink: 0;
+        }
+        .sp-id-badge {
+            background: rgba(255,255,255,.18);
+            color: #fff;
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 4px 12px;
+            border-radius: 20px;
+            letter-spacing: .04em;
+        }
+        .sp-section {
+            border-radius: 16px;
+            overflow: hidden;
+            margin-bottom: 14px;
+            border: 1.5px solid #e5e7eb;
+            background: #fff;
+        }
+        .sp-section-header {
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px 16px;
+        }
+        .sp-section-title {
+            font-size: 0.72rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+        }
+        .sp-field-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            padding: 14px;
+        }
+        .sp-field {
+            background: #f8fafc;
+            border-radius: 10px;
+            padding: 10px 14px;
+            border: 1px solid #f0f0f0;
+        }
+        .sp-field-full { grid-column: 1 / -1; }
+        .sp-field-label {
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            color: #9ca3af;
+            margin-bottom: 3px;
+        }
+        .sp-field-value {
+            font-size: 0.88rem;
+            color: #1f2937;
+            font-weight: 500;
+            line-height: 1.4;
+        }
+        .sp-status-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 13px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: .02em;
+        }
+        .sp-action-bar {
+            display: flex;
+            gap: 10px;
+            padding: 18px 0 0;
+            flex-wrap: wrap;
+        }
+        .sp-edit-btn {
+            flex: 1;
+            min-width: 160px;
+            background: linear-gradient(135deg, #0d9488, #0891b2);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 13px 20px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            box-shadow: 0 4px 15px rgba(13,148,136,.3);
+            transition: all .2s;
+        }
+        .sp-edit-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 22px rgba(13,148,136,.45); }
+        .sp-verified-banner {
+            display: flex; align-items: center; gap: 10px;
+            background: #ecfdf5;
+            border: 1px solid #a7f3d0;
+            border-radius: 10px;
+            padding: 10px 14px;
+            margin-bottom: 16px;
+            font-size: 0.83rem;
+            font-weight: 600;
+            color: #065f46;
+        }
+        @media (max-width: 640px) {
+            .sp-field-grid { grid-template-columns: 1fr; }
+            .sp-field-full { grid-column: 1; }
+            .sp-hero { padding: 24px 18px 22px; }
+        }
+
         /* Print Styles */
         @media print {
             * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
@@ -889,24 +1032,7 @@
         <div id="student-dashboard-view" class="page-view"></div>
 
         <div id="submitted-view" class="page-view">
-            <div style="max-width: 520px; margin: 60px auto;" class="glass-card">
-                <div style="padding: 40px; text-align: center;">
-                    <div style="width: 72px; height: 72px; background: linear-gradient(135deg, #059669, #34d399); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 24px; box-shadow: 0 8px 24px rgba(52,211,153,0.3);">
-                        <svg width="36" height="36" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
-                    </div>
-                    <h2 style="font-size: 1.6rem; font-weight: 800; color: var(--text-primary); margin-bottom: 10px;">Response Saved!</h2>
-                    <p style="color: var(--text-secondary); font-size: 0.95rem; line-height: 1.6; margin-bottom: 8px;">
-                        Your profile has been successfully submitted to the <strong style="color: var(--accent-primary);">Nishan Alumni Register</strong>.
-                    </p>
-                    <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 32px;">
-                        You can come back anytime to update your information.
-                    </p>
-                    <button id="edit-response-btn" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 14px; font-size: 0.95rem;">
-                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                        Edit My Response
-                    </button>
-                </div>
-            </div>
+            <!-- Rendered dynamically by renderStudentProfileView() -->
         </div>
 
         <!-- Bulk Upload Page -->
@@ -1460,23 +1586,185 @@
                 return;
             }
 
-            // If student has already completed their profile, show the submitted view
+            // If student has already completed their profile, show the rich student profile view
             if (studentData.studentHasSubmitted && !sessionStorage.getItem('editingResponse')) {
                 document.body.className = 'show-submitted';
-                const editBtn = document.getElementById('edit-response-btn');
-                if (editBtn) {
-                    editBtn.onclick = () => {
-                        sessionStorage.setItem('editingResponse', '1');
-                        document.body.className = 'show-student-dashboard';
-                        renderStudentDashboard(studentData);
-                    };
-                }
+                renderStudentProfileView(studentData);
                 return;
             }
 
             const formHTML = buildFormHtml('student-dashboard-view', studentData.id, studentData, true);
             document.getElementById('student-dashboard-view').innerHTML = formHTML;
             attachFormListeners(studentData.id, true, studentData); // Pass data directly
+        };
+
+        const renderStudentProfileView = (student) => {
+            const submittedView = document.getElementById('submitted-view');
+            const esc = (v) => String(v || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+            const boolVal = (v) => (v === true || v === 'Yes') ? 'Yes' : (v === false || v === 'No') ? 'No' : (v || '—');
+
+            const field = (label, value, full = false) => {
+                if (!value && value !== 0) return '';
+                return `<div class="sp-field${full ? ' sp-field-full' : ''}">
+                    <div class="sp-field-label">${esc(label)}</div>
+                    <div class="sp-field-value">${esc(String(value))}</div>
+                </div>`;
+            };
+            const listField = (label, value) => {
+                if (!value) return '';
+                const items = String(value).split('\n').map(s => s.trim()).filter(Boolean);
+                if (!items.length) return '';
+                return `<div class="sp-field sp-field-full">
+                    <div class="sp-field-label">${esc(label)}</div>
+                    <div class="sp-field-value">${items.map(i => `<div style="display:flex;gap:8px;margin-bottom:2px;"><span style="color:#0d9488;font-size:.75rem;margin-top:2px;">▸</span><span>${esc(i)}</span></div>`).join('')}</div>
+                </div>`;
+            };
+
+            const section = (icon, title, tintBg, tintText, fields) => {
+                const rendered = fields.join('');
+                if (!rendered.trim()) return '';
+                return `<div class="sp-section">
+                    <div class="sp-section-header" style="background:${tintBg};">
+                        <span style="font-size:1.1rem;">${icon}</span>
+                        <span class="sp-section-title" style="color:${tintText};">${title}</span>
+                    </div>
+                    <div class="sp-field-grid">${rendered}</div>
+                </div>`;
+            };
+
+            const isHudawi = student.sanadReceived === true || student.sanadReceived === 'Yes';
+            const subtitle = (student.dhPGs ? String(student.dhPGs).split('\n')[0].trim() : null) || student.currentJob || 'Alumni';
+
+            let statusParts = [];
+            if (student.currentlyStudent) statusParts.push({ label: 'DH PG Student', color: '#dbeafe', text: '#1e40af' });
+            if (student.courseComplete) statusParts.push({ label: 'Hudawi Course Completed', color: '#dcfce7', text: '#166534' });
+            if (student.dropout) statusParts.push({ label: 'Dropout', color: '#fef3c7', text: '#92400e' });
+
+            submittedView.innerHTML = `
+                <div style="max-width:680px;margin:0 auto;">
+
+                    <!-- Verified banner -->
+                    <div class="sp-verified-banner no-print">
+                        <svg width="18" height="18" fill="none" stroke="#059669" stroke-width="2.2" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4"/><path d="M12 2l3.09 1.26L18 2l1.26 3.09L22 6l-1.26 3.09L22 12l-3.09 1.26L18 15.74l-3.09-1.26L12 16l-1.26-3.09L8 12l1.26-3.09L8 6l3.09-1.26L12 2z"/></svg>
+                        Profile successfully submitted to the Nishan Alumni Register.
+                    </div>
+
+                    <div style="background:#fff;border-radius:20px;overflow:hidden;border:1.5px solid #e5e7eb;box-shadow:0 2px 12px rgba(0,0,0,.06);">
+
+                        <!-- Hero -->
+                        <div class="sp-hero">
+                            <div style="position:relative;z-index:1;">
+                                <div style="font-size:0.68rem;color:rgba(255,255,255,.65);font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin-bottom:16px;">
+                                    My Nishan Profile · Darunnajath Alumni
+                                </div>
+                                <div style="display:flex;align-items:center;gap:18px;flex-wrap:wrap;">
+                                    <div class="sp-avatar">
+                                        <svg width="34" height="34" fill="none" stroke="white" stroke-width="1.7" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                                    </div>
+                                    <div style="flex:1;">
+                                        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:5px;">
+                                            <h2 style="font-size:1.6rem;font-weight:900;color:#fff;line-height:1.1;">${esc(student.fullName)}</h2>
+                                            ${isHudawi ? `<span style="background:#fde68a;color:#78350f;font-size:0.68rem;font-weight:800;padding:3px 11px;border-radius:20px;letter-spacing:.04em;">✦ HUDAWI</span>` : ''}
+                                        </div>
+                                        <div style="font-size:0.9rem;color:rgba(255,255,255,.8);font-weight:500;margin-bottom:12px;">${esc(subtitle)}</div>
+                                        <div style="display:flex;flex-wrap:wrap;gap:7px;">
+                                            ${student.admissionNo ? `<span class="sp-id-badge">Adm. ${esc(student.admissionNo)}</span>` : ''}
+                                            ${student.batchNo ? `<span class="sp-id-badge">Batch ${esc(student.batchNo)}</span>` : ''}
+                                            ${student.location ? `<span class="sp-id-badge">📍 ${esc(student.location)}</span>` : ''}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Status chips -->
+                                ${statusParts.length ? `
+                                <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:16px;padding-top:16px;border-top:1px solid rgba(255,255,255,.18);">
+                                    ${statusParts.map(s => `<span class="sp-status-chip" style="background:${s.color};color:${s.text};">${s.label}</span>`).join('')}
+                                </div>` : ''}
+                            </div>
+                        </div>
+
+                        <!-- Profile Sections -->
+                        <div style="padding:20px 20px 24px;">
+
+                            ${section('🧑', 'Personal Information', '#f0fdfa', '#0f766e', [
+                                field('Phone', student.phone),
+                                field('WhatsApp', student.whatsapp),
+                                field('Email', student.email),
+                                field('Date of Birth', student.dob),
+                                field('District', student.district),
+                                field('Location', student.location),
+                                field('Mahallu / Masjid', student.mahallu),
+                                field('At Own Home', boolVal(student.atOwnHome)),
+                                field('Address', student.address, true),
+                            ])}
+
+                            ${section('🎓', 'Educational Details', '#eff6ff', '#1e40af', [
+                                field('Admission No.', student.admissionNo),
+                                field('Batch No.', student.batchNo),
+                                field('Years at Najath', student.yearsAtNajath),
+                                field('SSLC Holder', boolVal(student.sslc)),
+                                listField('External Degrees', student.externalDegrees),
+                                listField('External PGs', student.externalPGs),
+                                listField('Darul Huda PGs', student.dhPGs),
+                                listField('Other Higher Education', student.otherHigherEd),
+                            ])}
+
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+                                <div>
+                                    ${section('📋', 'Status', '#faf5ff', '#6d28d9', [
+                                        field('Academic Status', statusParts.map(s=>s.label).join(' · ') || '—', true),
+                                        student.courseComplete ? field('Sanad Received', boolVal(student.sanadReceived), true) : '',
+                                        student.otherSanad ? field('Other Sanad', student.otherSanad, true) : '',
+                                    ])}
+                                </div>
+                                <div>
+                                    ${section('💼', 'Professional', '#f0fdf4', '#166534', [
+                                        field('Current Job', student.currentJob, true),
+                                        listField('Previous Jobs', student.previousJob),
+                                    ])}
+                                </div>
+                            </div>
+
+                            ${section('👨\u200d👩\u200d👦', 'Family Details', '#fdf4ff', '#7e22ce', [
+                                field("Father's Name", student.fatherName),
+                                field("Father's Phone", student.fatherPhone),
+                                field("Mother's Name", student.motherName),
+                                field('Marital Status', student.maritalStatus),
+                                ...(student.maritalStatus === 'Married' ? [
+                                    field('Children', student.children),
+                                    field('Boys / Girls', `${student.boys||'—'} / ${student.girls||'—'}`),
+                                ] : []),
+                            ])}
+
+                            <!-- Action bar -->
+                            <div class="sp-action-bar no-print">
+                                <button id="edit-response-btn" class="sp-edit-btn">
+                                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                    Edit My Profile
+                                </button>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <style>
+                    @media (max-width: 640px) {
+                        #submitted-view > div > div:last-child > div:nth-child(4) > div { grid-template-columns: 1fr !important; }
+                    }
+                </style>
+            `;
+
+            document.getElementById('edit-response-btn').onclick = () => {
+                sessionStorage.setItem('editingResponse', '1');
+                document.body.className = 'show-student-dashboard';
+                const key = sessionStorage.getItem('studentKey');
+                if (key) {
+                    attachStudentDataListener(key);
+                } else {
+                    renderStudentDashboard(student);
+                }
+            };
         };
         
         const renderAdminFormPage = (studentId) => {
@@ -1486,40 +1774,40 @@
             attachFormListeners(studentId, false, student); // Pass data directly
         };
 
-        // ── Print HTML builder ──
+        // ── Print HTML builder (multi-page) ──
         const buildProfilePrintHTML = (student) => {
             const boolVal = (v) => (v === true || v === 'Yes') ? 'Yes' : (v === false || v === 'No') ? 'No' : (v || '');
             const esc = (v) => String(v || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 
-            // A single field pill: label above, value below
+            // A single field pill
             const pill = (label, value) => {
                 if (!value && value !== 0) return '';
-                return `<div style="padding:10px 14px;background:#f9fafb;border-radius:10px;border:1px solid #f0f0f0;">
-                    <div style="font-size:7.5pt;color:#9ca3af;font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px;">${esc(label)}</div>
-                    <div style="font-size:10pt;color:#1f2937;font-weight:500;line-height:1.4;">${esc(String(value))}</div>
+                return `<div style="padding:9px 13px;background:#f9fafb;border-radius:9px;border:1px solid #ede9fe;">
+                    <div style="font-size:7pt;color:#9ca3af;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px;">${esc(label)}</div>
+                    <div style="font-size:9.5pt;color:#1f2937;font-weight:500;line-height:1.4;">${esc(String(value))}</div>
                 </div>`;
             };
             const listPill = (label, value) => {
                 if (!value) return '';
                 const items = String(value).split('\n').map(s => s.trim()).filter(Boolean);
                 if (!items.length) return '';
-                const inner = items.map(i => `<div style="display:flex;align-items:baseline;gap:6px;margin-bottom:2px;"><span style="color:#c4b5fd;font-size:8pt;">▸</span><span style="font-size:10pt;color:#1f2937;">${esc(i)}</span></div>`).join('');
-                return `<div style="padding:10px 14px;background:#f9fafb;border-radius:10px;border:1px solid #f0f0f0;grid-column:1/-1;">
-                    <div style="font-size:7.5pt;color:#9ca3af;font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">${esc(label)}</div>
+                const inner = items.map(i => `<div style="display:flex;align-items:baseline;gap:6px;margin-bottom:2px;"><span style="color:#0d9488;font-size:8pt;">▸</span><span style="font-size:9.5pt;color:#1f2937;">${esc(i)}</span></div>`).join('');
+                return `<div style="padding:9px 13px;background:#f9fafb;border-radius:9px;border:1px solid #ede9fe;grid-column:1/-1;">
+                    <div style="font-size:7pt;color:#9ca3af;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">${esc(label)}</div>
                     ${inner}
                 </div>`;
             };
 
-            // A card section with a soft tinted header
+            // Card section
             const card = (icon, title, tint, fields) => {
                 const rendered = fields.join('');
                 if (!rendered.trim()) return '';
-                return `<div style="margin-bottom:16px;border:1px solid #ede9fe;border-radius:14px;overflow:hidden;break-inside:avoid;">
-                    <div style="background:${tint};padding:8px 16px;display:flex;align-items:center;gap:8px;">
-                        <span style="font-size:11pt;">${icon}</span>
-                        <span style="font-size:8.5pt;font-weight:800;color:#4c1d95;text-transform:uppercase;letter-spacing:.07em;">${title}</span>
+                return `<div style="margin-bottom:14px;border:1px solid #ede9fe;border-radius:12px;overflow:hidden;break-inside:avoid;page-break-inside:avoid;">
+                    <div style="background:${tint};padding:7px 14px;display:flex;align-items:center;gap:8px;">
+                        <span style="font-size:10pt;">${icon}</span>
+                        <span style="font-size:8pt;font-weight:800;color:#4c1d95;text-transform:uppercase;letter-spacing:.07em;">${title}</span>
                     </div>
-                    <div style="padding:12px;display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                    <div style="padding:11px;display:grid;grid-template-columns:1fr 1fr;gap:7px;">
                         ${rendered}
                     </div>
                 </div>`;
@@ -1536,101 +1824,141 @@
 
             const today = new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'long',year:'numeric'});
 
+            // ─── Page 1: Banner + Personal + Status + Family ───────────────────────────
+            const page1 = `
+                <!-- ── Top banner ── -->
+                <div style="background:linear-gradient(120deg,#0d9488 0%,#0891b2 55%,#2dd4bf 100%);border-radius:14px;padding:18px 22px 16px;margin-bottom:16px;position:relative;overflow:hidden;">
+                    <div style="position:absolute;top:-30px;right:-30px;width:120px;height:120px;background:rgba(255,255,255,.07);border-radius:50%;"></div>
+                    <div style="position:absolute;bottom:-40px;right:60px;width:90px;height:90px;background:rgba(255,255,255,.05);border-radius:50%;"></div>
+                    <div style="position:relative;display:flex;align-items:flex-start;justify-content:space-between;gap:14px;">
+                        <div style="flex:1;">
+                            <div style="font-size:7pt;color:rgba(255,255,255,.65);font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px;">Nishan Alumni Register &nbsp;·&nbsp; Darunnajath Islamic Complex</div>
+                            <h1 style="font-size:19pt;font-weight:900;color:#fff;line-height:1.15;margin-bottom:4px;">${esc(student.fullName)}</h1>
+                            <div style="font-size:10pt;color:rgba(255,255,255,.8);font-weight:500;margin-bottom:9px;">${esc(subtitle)}</div>
+                            <div style="display:flex;flex-wrap:wrap;gap:5px;">
+                                ${student.admissionNo ? `<span style="background:rgba(255,255,255,.18);color:#fff;font-size:7.5pt;font-weight:700;padding:2px 9px;border-radius:20px;">Admission No. ${esc(student.admissionNo)}</span>` : ''}
+                                ${student.batchNo ? `<span style="background:rgba(255,255,255,.18);color:#fff;font-size:7.5pt;font-weight:700;padding:2px 9px;border-radius:20px;">Batch ${esc(student.batchNo)}</span>` : ''}
+                                ${isHudawi ? `<span style="background:#fde68a;color:#78350f;font-size:7.5pt;font-weight:800;padding:2px 9px;border-radius:20px;letter-spacing:.04em;">✦ HUDAWI</span>` : ''}
+                                ${statusParts.map(s=>`<span style="background:rgba(255,255,255,.15);color:#fff;font-size:7.5pt;font-weight:600;padding:2px 9px;border-radius:20px;">${esc(s)}</span>`).join('')}
+                            </div>
+                        </div>
+                        <div style="flex-shrink:0;text-align:right;">
+                            <div style="width:50px;height:50px;background:rgba(255,255,255,.2);border-radius:50%;display:flex;align-items:center;justify-content:center;margin-left:auto;margin-bottom:5px;">
+                                <svg width="24" height="24" fill="none" stroke="white" stroke-width="1.8" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                            </div>
+                            <div style="font-size:7pt;color:rgba(255,255,255,.55);">${esc(today)}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ── Page 1 body: Personal + Status + Family ── -->
+                ${card('🧑', 'Personal Information', '#f0fdfa', [
+                    pill('Date of Birth', student.dob),
+                    pill('Phone', student.phone),
+                    pill('WhatsApp', student.whatsapp),
+                    pill('Email', student.email),
+                    pill('District', student.district),
+                    pill('Location', student.location),
+                    pill('Mahallu / Masjid', student.mahallu),
+                    pill('At Own Home', boolVal(student.atOwnHome)),
+                    listPill('Address', student.address),
+                ])}
+                ${card('📋', 'Academic Status', '#faf5ff', [
+                    pill('Status', statusParts.join(' · ') || '—'),
+                    student.courseComplete ? pill('Sanad Received', boolVal(student.sanadReceived)) : '',
+                    student.otherSanad ? pill('Other Sanad', student.otherSanad) : '',
+                ])}
+                ${card('👨‍👩‍👦', 'Family Details', '#fdf4ff', [
+                    pill("Father's Name", student.fatherName),
+                    pill("Father's Phone", student.fatherPhone),
+                    pill("Mother's Name", student.motherName),
+                    pill('Marital Status', student.maritalStatus),
+                    ...(student.maritalStatus === 'Married' ? [
+                        pill('Children', student.children),
+                        pill('Boys / Girls', `${student.boys||'—'} / ${student.girls||'—'}`),
+                    ] : []),
+                ])}
+
+                <!-- ── Page 1 footer ── -->
+                <div style="margin-top:14px;padding-top:9px;border-top:1px dashed #e5e7eb;display:flex;justify-content:space-between;align-items:center;">
+                    <span style="font-size:6.5pt;color:#0d9488;font-weight:700;letter-spacing:.04em;">DARUNNAJATH ISLAMIC COMPLEX · VALLAPPUZHA, PALAKKAD, KERALA · darunnajath.in</span>
+                    <span style="font-size:6.5pt;color:#d1d5db;">Page 1 of 2</span>
+                </div>
+            `;
+
+            // ─── Page 2: Education + Professional ──────────────────────────────────────
+            const page2 = `
+                <!-- ── Page 2 header strip ── -->
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:linear-gradient(90deg,#0d9488,#0891b2);border-radius:10px;margin-bottom:16px;">
+                    <div>
+                        <div style="font-size:7pt;color:rgba(255,255,255,.7);font-weight:600;letter-spacing:.08em;text-transform:uppercase;">Nishan Alumni Register — Continued</div>
+                        <div style="font-size:12pt;font-weight:900;color:#fff;">${esc(student.fullName)}</div>
+                    </div>
+                    <div style="font-size:7pt;color:rgba(255,255,255,.6);">${esc(today)}</div>
+                </div>
+
+                ${card('🎓', 'Educational Details', '#eff6ff', [
+                    pill('Admission No.', student.admissionNo),
+                    pill('Batch No.', student.batchNo),
+                    pill('Years at Najath', student.yearsAtNajath),
+                    pill('SSLC Holder', boolVal(student.sslc)),
+                    listPill('External Degrees', student.externalDegrees),
+                    listPill('External PGs', student.externalPGs),
+                    listPill('Darul Huda PGs', student.dhPGs),
+                    listPill('Other Higher Education', student.otherHigherEd),
+                ])}
+                ${card('💼', 'Professional Information', '#f0fdf4', [
+                    pill('Current Job', student.currentJob),
+                    listPill('Previous Jobs', student.previousJob),
+                ])}
+
+                <!-- ── Page 2 footer ── -->
+                <div style="margin-top:14px;padding-top:9px;border-top:1px dashed #e5e7eb;display:flex;justify-content:space-between;align-items:center;">
+                    <span style="font-size:6.5pt;color:#0d9488;font-weight:700;letter-spacing:.04em;">DARUNNAJATH ISLAMIC COMPLEX · VALLAPPUZHA, PALAKKAD, KERALA · darunnajath.in</span>
+                    <span style="font-size:6.5pt;color:#d1d5db;">Page 2 of 2 · Nishan Alumni Register</span>
+                </div>
+            `;
+
             return `<!DOCTYPE html><html><head><meta charset="UTF-8">
             <style>
                 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
                 * { box-sizing:border-box; margin:0; padding:0; }
                 body { font-family:'Inter',sans-serif; background:#fff; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
-                .page { max-width:210mm; margin:0 auto; padding:12mm 13mm 10mm; }
-                @media print { body{margin:0;} .page{padding:10mm 12mm 8mm;} }
-            </style></head><body><div class="page">
 
-                <!-- ── Top banner ── -->
-                <div style="background:linear-gradient(120deg,#4f46e5 0%,#7c3aed 60%,#a78bfa 100%);border-radius:16px;padding:20px 24px 18px;margin-bottom:18px;position:relative;overflow:hidden;">
-                    <!-- decorative circles -->
-                    <div style="position:absolute;top:-30px;right:-30px;width:120px;height:120px;background:rgba(255,255,255,.07);border-radius:50%;"></div>
-                    <div style="position:absolute;bottom:-40px;right:60px;width:90px;height:90px;background:rgba(255,255,255,.05);border-radius:50%;"></div>
+                .page {
+                    width: 210mm;
+                    min-height: 297mm;
+                    margin: 0 auto;
+                    padding: 12mm 13mm 10mm;
+                    box-sizing: border-box;
+                }
 
-                    <div style="position:relative;display:flex;align-items:flex-start;justify-content:space-between;gap:16px;">
-                        <div style="flex:1;">
-                            <div style="font-size:7.5pt;color:rgba(255,255,255,.65);font-weight:600;letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px;">Nishan Alumni Register &nbsp;·&nbsp; Darunnajath Islamic Complex</div>
-                            <h1 style="font-size:21pt;font-weight:900;color:#fff;line-height:1.15;margin-bottom:4px;">${esc(student.fullName)}</h1>
-                            <div style="font-size:10.5pt;color:rgba(255,255,255,.8);font-weight:500;margin-bottom:10px;">${esc(subtitle)}</div>
-                            <div style="display:flex;flex-wrap:wrap;gap:6px;">
-                                ${student.admissionNo ? `<span style="background:rgba(255,255,255,.18);color:#fff;font-size:8pt;font-weight:700;padding:3px 10px;border-radius:20px;">No. ${esc(student.admissionNo)}</span>` : ''}
-                                ${student.batchNo ? `<span style="background:rgba(255,255,255,.18);color:#fff;font-size:8pt;font-weight:700;padding:3px 10px;border-radius:20px;">Batch ${esc(student.batchNo)}</span>` : ''}
-                                ${isHudawi ? `<span style="background:#fde68a;color:#78350f;font-size:8pt;font-weight:800;padding:3px 10px;border-radius:20px;letter-spacing:.04em;">✦ HUDAWI</span>` : ''}
-                                ${statusParts.map(s=>`<span style="background:rgba(255,255,255,.15);color:#fff;font-size:8pt;font-weight:600;padding:3px 10px;border-radius:20px;">${esc(s)}</span>`).join('')}
-                            </div>
-                        </div>
-                        <div style="flex-shrink:0;text-align:right;">
-                            <div style="width:56px;height:56px;background:rgba(255,255,255,.2);border-radius:50%;display:flex;align-items:center;justify-content:center;margin-left:auto;margin-bottom:6px;">
-                                <svg width="28" height="28" fill="none" stroke="white" stroke-width="1.8" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                            </div>
-                            <div style="font-size:7.5pt;color:rgba(255,255,255,.55);">${esc(today)}</div>
-                        </div>
-                    </div>
-                </div>
+                .page-break {
+                    page-break-before: always;
+                    break-before: page;
+                }
 
-                <!-- ── Two-column body ── -->
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start;">
+                @page {
+                    size: A4;
+                    margin: 0;
+                }
 
-                    <!-- Left column -->
-                    <div>
-                        ${card('🧑', 'Personal', '#f5f3ff', [
-                            pill('Date of Birth', student.dob),
-                            pill('Phone', student.phone),
-                            pill('WhatsApp', student.whatsapp),
-                            pill('Email', student.email),
-                            pill('District', student.district),
-                            pill('Location', student.location),
-                            pill('Mahallu / Masjid', student.mahallu),
-                            pill('At Own Home', boolVal(student.atOwnHome)),
-                            listPill('Address', student.address),
-                        ])}
-                        ${card('📋', 'Status', '#faf5ff', [
-                            pill('Academic Status', statusParts.join(' · ') || '—'),
-                            student.courseComplete ? pill('Sanad Received', boolVal(student.sanadReceived)) : '',
-                            student.otherSanad ? pill('Other Sanad', student.otherSanad) : '',
-                        ])}
-                        ${card('👨‍👩‍👦', 'Family', '#fdf4ff', [
-                            pill("Father's Name", student.fatherName),
-                            pill("Father's Phone", student.fatherPhone),
-                            pill("Mother's Name", student.motherName),
-                            pill('Marital Status', student.maritalStatus),
-                            ...(student.maritalStatus === 'Married' ? [
-                                pill('Children', student.children),
-                                pill('Boys / Girls', `${student.boys||'—'} / ${student.girls||'—'}`),
-                            ] : []),
-                        ])}
-                    </div>
+                @media print {
+                    body { margin: 0; }
+                    .page { padding: 10mm 12mm 8mm; }
+                    .page-break { page-break-before: always; break-before: page; }
+                }
 
-                    <!-- Right column -->
-                    <div>
-                        ${card('🎓', 'Education', '#eff6ff', [
-                            pill('Admission No.', student.admissionNo),
-                            pill('Batch No.', student.batchNo),
-                            pill('Years at Najath', student.yearsAtNajath),
-                            pill('SSLC Holder', boolVal(student.sslc)),
-                            listPill('External Degrees', student.externalDegrees),
-                            listPill('External PGs', student.externalPGs),
-                            listPill('Darul Huda PGs', student.dhPGs),
-                            listPill('Other Higher Education', student.otherHigherEd),
-                        ])}
-                        ${card('💼', 'Professional', '#f0fdf4', [
-                            pill('Current Job', student.currentJob),
-                            listPill('Previous Jobs', student.previousJob),
-                        ])}
-                    </div>
-                </div>
+                @media screen {
+                    body { background: #e5e7eb; padding: 20px; }
+                    .page { background: #fff; box-shadow: 0 4px 30px rgba(0,0,0,.12); margin-bottom: 30px; }
+                }
+            </style></head><body>
 
-                <!-- ── Footer ── -->
-                <div style="margin-top:16px;padding-top:10px;border-top:1px dashed #e5e7eb;display:flex;justify-content:space-between;align-items:center;">
-                    <span style="font-size:7pt;color:#c4b5fd;font-weight:600;letter-spacing:.04em;">DARUNNAJATH ISLAMIC COMPLEX · VALLAPPUZHA, PALAKKAD, KERALA · darunnajath.in</span>
-                    <span style="font-size:7pt;color:#d1d5db;">Nishan Alumni Register</span>
-                </div>
+            <div class="page">${page1}</div>
+            <div class="page page-break">${page2}</div>
 
-            </div></body></html>`;
+            </body></html>`;
         };
 
         const renderProfilePage = (studentId) => {
@@ -2422,7 +2750,7 @@
                                     </select>
                                 </div>
                                 <div id="otherSanad-wrapper" style="display:none;">
-                                    <label for="otherSanad">Other Sanad Received (specify) / No other Sanad recived *</label>
+                                    <label for="otherSanad">Other Sanad Received (specify) / No Sanad *</label>
                                     <input type="text" id="otherSanad" placeholder="e.g. Anwari, Wafi, Faizy......" required>
                                 </div>`;
                         }
@@ -2760,18 +3088,11 @@
             studentsRef.child(studentId).update(studentData)
                 .then(() => {
                     if (isStudent) {
-                        // Show the "Response Saved" confirmation screen
-                        document.body.className = 'show-submitted';
+                        // Show the rich student profile view with updated data
                         sessionStorage.removeItem('editingResponse');
-                        const editBtn = document.getElementById('edit-response-btn');
-                        if (editBtn) {
-                            editBtn.onclick = () => {
-                                sessionStorage.setItem('editingResponse', '1');
-                                document.body.className = 'show-student-dashboard';
-                                const key = sessionStorage.getItem('studentKey');
-                                if (key) attachStudentDataListener(key);
-                            };
-                        }
+                        document.body.className = 'show-submitted';
+                        // Render the profile with fully merged data so it reflects the latest save
+                        renderStudentProfileView({ ...mergedData, studentHasSubmitted: true });
                     } else {
                         showNotification('Profile updated successfully!', 'success');
                         window.location.hash = `#/profile/${studentId}`;
